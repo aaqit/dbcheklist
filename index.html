@@ -1,18 +1,1039 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<meta name="theme-color" content="#0f172a">
-<title>Checking Report System</title>
-<style>
-/* entire file omitted for brevity in this patch; repository remains unchanged outside the specific input line */
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checking Report System</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --line: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --pri: #4f46e5;
+      --pri-2: #7c3aed;
+      --ok: #16a34a;
+      --ok-bg: #dcfce7;
+      --warn: #d97706;
+      --warn-bg: #fef3c7;
+      --bad: #dc2626;
+      --bad-bg: #fee2e2;
+      --shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+    body { min-height: 100vh; }
+    button, input, select, textarea { font: inherit; }
+    .hidden { display: none !important; }
+
+    .login-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
+      padding: 24px;
+    }
+
+    .login-card {
+      width: min(420px, 100%);
+      background: rgba(255,255,255,0.95);
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+      padding: 32px 28px;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      width: 56px; height: 56px; border-radius: 16px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--pri), var(--pri-2));
+      color: white; margin: 0 auto 18px; font-size: 28px; font-weight: 700;
+    }
+
+    h2 { margin: 0 0 8px; text-align: center; font-size: 32px; }
+    .subtitle { text-align: center; margin: 0 0 24px; color: var(--muted); font-size: 14px; }
+
+    .field { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 8px; color: var(--muted); font-weight: 700; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    input, select, textarea {
+      width: 100%; border: 1px solid var(--line); border-radius: 10px;
+      background: var(--surface-2); color: var(--text); padding: 12px 14px; outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--pri); box-shadow: 0 0 0 4px rgba(79,70,229,0.12); }
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 64px; }
+    .toggle-pass {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      border: none; background: transparent; color: var(--muted); font-weight: 700; cursor: pointer;
+    }
+    .alert { display: none; border-radius: 10px; padding: 10px 12px; margin: 12px 0 18px; font-weight: 700; }
+    .alert.show { display: block; }
+    .alert.error { background: var(--bad-bg); color: var(--bad); }
+    .alert.ok { background: var(--ok-bg); color: var(--ok); }
+
+    .primary-btn {
+      width: 100%; border: none; background: linear-gradient(135deg, #2563eb, #4f46e5 55%, #7c3aed);
+      color: white; border-radius: 12px; padding: 14px 18px; font-weight: 800; cursor: pointer; box-shadow: 0 18px 30px rgba(79,70,229,.25);
+    }
+    .primary-btn:hover { filter: brightness(1.03); }
+
+    .quick-login { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+    .quick-login h4 { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+    .demo-user {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; border: 1px solid var(--line);
+      background: var(--surface-2); border-radius: 10px; padding: 10px 12px; margin: 8px 0; cursor: pointer; text-align: left;
+    }
+    .demo-user:hover { border-color: var(--pri); }
+    .demo-user .name { font-weight: 800; }
+    .demo-user .meta { font-size: 12px; color: var(--muted); }
+
+    .app-shell { display: none; min-height: 100vh; }
+    .app-shell.active { display: block; }
+
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; width: 240px; background: linear-gradient(180deg, #0f172a, #1e293b); color: #dfe6f3; padding: 18px 14px; display: flex; flex-direction: column;
+    }
+    .brand-row { display: flex; align-items: center; gap: 12px; padding: 6px 8px 18px; }
+    .brand-mini {
+      width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, var(--pri), var(--pri-2)); font-weight: 800; font-size: 18px;
+    }
+    .brand-row .title { font-size: 14px; font-weight: 800; }
+    .brand-row .sub { font-size: 10px; color: #9fb0ce; }
+
+    .nav { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .nav button {
+      width: 100%; border: none; background: transparent; color: #c7d2e5; text-align: left; display: flex; align-items: center; gap: 10px;
+      padding: 11px 12px; border-radius: 10px; font-weight: 700; cursor: pointer;
+    }
+    .nav button:hover, .nav button.active { background: rgba(255,255,255,0.08); color: white; }
+    .nav .pill { margin-left: auto; background: linear-gradient(135deg, #f43f5e, #f97316); color: white; font-size: 10px; padding: 4px 7px; border-radius: 999px; }
+
+    .user-card {
+      margin-top: auto; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+    }
+    .avatar {
+      width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #7c3aed); font-weight: 800; color: white;
+    }
+    .user-card .name { font-size: 12px; font-weight: 800; }
+    .user-card .role { font-size: 10px; color: #a7b5d0; }
+
+    .content-wrap { margin-left: 240px; }
+    .topbar {
+      position: sticky; top: 0; background: rgba(255,255,255,0.76); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); z-index: 20;
+    }
+    .topbar-inner {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 24px;
+    }
+    .page-title { font-size: 20px; font-weight: 800; }
+    .page-sub { color: var(--muted); font-size: 12px; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--text); font-weight: 700; font-size: 12px;
+    }
+    .chip i { width: 8px; height: 8px; background: var(--ok); border-radius: 50%; display: inline-block; }
+
+    .panel { padding: 22px 24px 40px; }
+    .grid { display: grid; gap: 18px; }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow);
+    }
+    .card h3 { margin: 0 0 14px; font-size: 18px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .stat { background: var(--surface); border: 1px solid var(--line); border-left: 5px solid var(--pri); border-radius: 14px; padding: 16px; }
+    .stat .label { color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+    .stat .value { margin-top: 8px; font-weight: 800; font-size: 32px; }
+    .stat .meta { color: var(--muted); font-size: 12px; }
+    .stat.ok { border-left-color: var(--ok); }
+    .stat.warn { border-left-color: var(--warn); }
+    .stat.bad { border-left-color: var(--bad); }
+
+    .list { display: flex; flex-direction: column; gap: 12px; }
+    .report-item {
+      border: 1px solid var(--line); border-radius: 14px; padding: 16px; background: var(--surface);
+    }
+    .report-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .report-meta { font-size: 12px; color: var(--muted); }
+    .report-id { font-size: 16px; font-weight: 800; }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase;
+    }
+    .status-pill::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .status-PENDING { background: var(--warn-bg); color: var(--warn); }
+    .status-APPROVED { background: var(--ok-bg); color: var(--ok); }
+    .status-REJECTED { background: var(--bad-bg); color: var(--bad); }
+
+    .report-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .small-btn {
+      border: none; border-radius: 9px; padding: 8px 12px; font-weight: 800; cursor: pointer;
+    }
+    .small-btn.primary { background: var(--pri); color: white; }
+    .small-btn.ok { background: var(--ok-bg); color: var(--ok); }
+    .small-btn.bad { background: var(--bad-bg); color: var(--bad); }
+    .small-btn.soft { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filters > * { flex: 1; min-width: 160px; }
+
+    .stepper { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 16px; }
+    .steps { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .step { flex: 1; min-width: 110px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); font-weight: 800; }
+    .step.active { background: rgba(79,70,229,0.10); border-color: rgba(79,70,229,0.35); color: var(--pri); }
+    .step.done { background: rgba(22,163,74,0.10); border-color: rgba(22,163,74,0.30); color: var(--ok); }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .field-row { display: flex; flex-direction: column; gap: 6px; }
+    .full { grid-column: 1 / -1; }
+    .textarea { min-height: 100px; resize: vertical; }
+
+    .tree { display: flex; flex-direction: column; gap: 10px; }
+    .tree-node {
+      border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .tree-node .left { display: flex; align-items: center; gap: 12px; }
+    .type-badge {
+      border-radius: 999px; background: rgba(79,70,229,0.08); color: var(--pri); padding: 5px 8px; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .tree-children { margin-left: 18px; display: flex; flex-direction: column; gap: 10px; border-left: 2px dotted var(--line); padding-left: 16px; }
+
+    .footer-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+    .secondary { background: var(--surface-2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 10px 14px; font-weight: 800; cursor: pointer; }
+    .danger { background: var(--bad-bg); color: var(--bad); border: 1px solid rgba(220,38,38,0.15); border-radius: 10px; padding: 10px 14px; font-weight: 800; cursor: pointer; }
+
+    .empty { text-align: center; color: var(--muted); padding: 28px 12px; }
+    .muted { color: var(--muted); }
+
+    .photo-box { margin-top: 12px; }
+    .photo-box img {
+      width: 100%; max-width: 260px; max-height: 200px; border-radius: 12px; border: 1px solid var(--line); object-fit: cover; background: #eef2ff;
+    }
+    .photo-box input[type="file"] { margin-top: 8px; }
+
+    @media (max-width: 900px) {
+      .sidebar { position: static; width: 100%; }
+      .content-wrap { margin-left: 0; }
+      .nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); }
+      .user-card { margin-top: 12px; }
+      .topbar-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
+  <div id="loginScreen" class="login-shell">
+    <div class="login-card">
+      <div class="brand">✓</div>
+      <h2>Sign in</h2>
+      <p class="subtitle">Checking Report System</p>
 
-<script>
-// This patch updates the mobile photo input to allow gallery/local images instead of forcing live camera only.
-</script>
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="Enter username" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="password-wrap">
+          <input id="password" type="password" placeholder="Enter password" />
+          <button class="toggle-pass" type="button" id="togglePassword">Show</button>
+        </div>
+      </div>
+
+      <div id="loginAlert" class="alert"></div>
+      <button class="primary-btn" id="loginBtn">Sign In</button>
+
+      <div class="quick-login">
+        <h4>Ready logins</h4>
+        <div id="demoUsers"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="appShell" class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-row">
+        <div class="brand-mini">✓</div>
+        <div>
+          <div class="title">Checking Report</div>
+          <div class="sub">System</div>
+        </div>
+      </div>
+      <nav class="nav" id="nav"></nav>
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">A</div>
+        <div>
+          <div class="name" id="sidebarName">Admin</div>
+          <div class="role" id="sidebarRole">ADMIN</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="content-wrap">
+      <header class="topbar">
+        <div class="topbar-inner">
+          <div>
+            <div class="page-title" id="pageTitle">Dashboard</div>
+            <div class="page-sub" id="pageSub">Overview of all reports</div>
+          </div>
+          <div class="top-actions">
+            <span class="chip"><i></i> <span id="whoChip">System</span></span>
+            <button class="secondary" id="logoutBtn">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="panel">
+        <section id="pane-dashboard" class="pane">
+          <div class="stats" id="statsGrid"></div>
+          <div class="grid grid-2">
+            <div class="card">
+              <h3>Recent Reports</h3>
+              <div id="recentReports" class="list"></div>
+            </div>
+            <div class="card">
+              <h3>Quick Actions</h3>
+              <div class="list">
+                <button class="small-btn primary" data-nav="new-report">Create New Report</button>
+                <button class="small-btn soft" data-nav="reports">Open Reports</button>
+                <button class="small-btn soft" data-nav="hierarchy">Manage Hierarchy</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="pane-reports" class="pane hidden">
+          <div class="card">
+            <h3>Reports</h3>
+            <div class="filters">
+              <input id="searchReports" type="text" placeholder="Search by report id, box, supervisor..." />
+              <select id="filterStatus">
+                <option value="">All statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+              </select>
+              <select id="filterDivision">
+                <option value="">All divisions</option>
+              </select>
+            </div>
+            <div id="reportList" class="list"></div>
+          </div>
+        </section>
+
+        <section id="pane-new-report" class="pane hidden">
+          <div class="stepper">
+            <div class="steps" id="steps"></div>
+            <div id="reportForm"></div>
+            <div class="footer-actions">
+              <button class="secondary" id="prevStepBtn" type="button">Previous</button>
+              <button class="primary-btn" id="nextStepBtn" style="width:auto; padding-inline: 20px;">Next</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="pane-hierarchy" class="pane hidden">
+          <div class="card">
+            <h3>Hierarchy Management</h3>
+            <div class="form-grid">
+              <div class="field-row">
+                <label>Level</label>
+                <select id="newLevel">
+                  <option value="REGION">Region</option>
+                  <option value="STATE">State</option>
+                  <option value="DIVISION">Division</option>
+                  <option value="SUPERVISOR">Supervisor</option>
+                  <option value="BOXEXEC">Box Executive</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label>Parent</label>
+                <select id="newParent"></select>
+              </div>
+              <div class="field-row">
+                <label>Name</label>
+                <input id="newNodeName" type="text" placeholder="Enter new name" />
+              </div>
+              <div class="field-row">
+                <label>Code / Email</label>
+                <input id="newNodeMeta" type="text" placeholder="Optional" />
+              </div>
+            </div>
+            <div class="footer-actions">
+              <button class="primary-btn" id="addNodeBtn" style="width:auto; padding-inline: 20px;">Add Node</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Hierarchy Tree</h3>
+            <div id="hierarchyTree" class="tree"></div>
+          </div>
+        </section>
+
+        <section id="pane-users" class="pane hidden">
+          <div class="card">
+            <h3>Users</h3>
+            <div class="form-grid">
+              <div class="field-row">
+                <label>Username</label>
+                <input id="userName" type="text" placeholder="lowercase username" />
+              </div>
+              <div class="field-row">
+                <label>Password</label>
+                <input id="userPassword" type="text" placeholder="password" />
+              </div>
+              <div class="field-row">
+                <label>Role</label>
+                <select id="userRole">
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="REGIONAL">REGIONAL</option>
+                  <option value="STATE">STATE</option>
+                  <option value="DIVISION">DIVISION</option>
+                  <option value="SUPERVISOR">SUPERVISOR</option>
+                  <option value="BOXEXEC">BOXEXEC</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label>Location</label>
+                <input id="userLocation" type="text" placeholder="Optional node id" />
+              </div>
+            </div>
+            <div class="footer-actions">
+              <button class="primary-btn" id="createUserBtn" style="width:auto; padding-inline: 20px;">Create User</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="pane-settings" class="pane hidden">
+          <div class="card">
+            <h3>System Info</h3>
+            <div id="systemInfo" class="grid grid-2"></div>
+            <div class="footer-actions">
+              <button class="danger" id="resetDataBtn">Reset Demo Data</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'crs_data_v1';
+    const DEFAULT_DATA = {
+      users: [
+        { id: 'u-1', username: 'admin', password: 'admin', role: 'ADMIN', name: 'System Admin', location: null },
+        { id: 'u-2', username: 'regional', password: 'regional', role: 'REGIONAL', name: 'Regional Manager', location: 'r1' },
+        { id: 'u-3', username: 'supervisor', password: 'supervisor', role: 'SUPERVISOR', name: 'Supervisor A', location: 's1' },
+        { id: 'u-4', username: 'box', password: 'box', role: 'BOXEXEC', name: 'Box Executive', location: 'b1' }
+      ],
+      hierarchy: [
+        { id: 'r1', type: 'REGION', name: 'North Region', parentId: null, meta: 'NR-01' },
+        { id: 's1', type: 'STATE', name: 'Punjab State', parentId: 'r1', meta: 'PB-11' },
+        { id: 'd1', type: 'DIVISION', name: 'Central Division', parentId: 's1', meta: 'CD-1' },
+        { id: 'sup1', type: 'SUPERVISOR', name: 'Amit Shah', parentId: 'd1', meta: 'S-101' },
+        { id: 'b1', type: 'BOXEXEC', name: 'Box 15', parentId: 'sup1', meta: 'BOX-15' }
+      ],
+      reports: [
+        {
+          id: 'CR-1001', title: 'Field Check Report', status: 'PENDING', division: 'Central Division', box: 'Box 15', supervisor: 'Amit Shah', date: '2026-10-02', remarks: 'Oil level and equipment check required.', photo: '', checks: { gate: 'YES', power: 'NO', safety: 'YES' }
+        },
+        {
+          id: 'CR-1002', title: 'Security Inspection', status: 'APPROVED', division: 'Central Division', box: 'Box 15', supervisor: 'Amit Shah', date: '2026-09-30', remarks: 'Inspection completed successfully.', photo: '', checks: { gate: 'YES', power: 'YES', safety: 'YES' }
+        }
+      ]
+    };
+
+    const navConfig = [
+      { id: 'dashboard', label: 'Dashboard' },
+      { id: 'reports', label: 'Reports' },
+      { id: 'new-report', label: 'New Report' },
+      { id: 'hierarchy', label: 'Hierarchy' },
+      { id: 'users', label: 'Users' },
+      { id: 'settings', label: 'Settings' }
+    ];
+
+    const state = { currentUser: null, activePane: 'dashboard', formStep: 0, formDraft: null };
+
+    function getData() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || JSON.stringify(DEFAULT_DATA));
+      } catch {
+        return JSON.parse(JSON.stringify(DEFAULT_DATA));
+      }
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function setAlert(type, text) {
+      const alert = document.getElementById('loginAlert');
+      alert.className = 'alert ' + (type === 'error' ? 'error' : 'ok');
+      alert.textContent = text;
+      alert.classList.add('show');
+    }
+
+    function renderDemoUsers() {
+      const data = getData();
+      const container = document.getElementById('demoUsers');
+      container.innerHTML = '';
+      data.users.forEach((u) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'demo-user';
+        btn.innerHTML = `
+          <div>
+            <div class="name">${u.username}</div>
+            <div class="meta">${u.role}</div>
+          </div>
+          <div class="meta">${u.password}</div>
+        `;
+        btn.addEventListener('click', () => {
+          document.getElementById('username').value = u.username;
+          document.getElementById('password').value = u.password;
+          doLogin();
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function doLogin() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const data = getData();
+      const user = data.users.find((u) => u.username === username && u.password === password);
+      if (!user) {
+        setAlert('error', 'Invalid username or password.');
+        return;
+      }
+
+      state.currentUser = user;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appShell').classList.add('active');
+      setPane('dashboard');
+    }
+
+    function doLogout() {
+      state.currentUser = null;
+      document.getElementById('appShell').classList.remove('active');
+      document.getElementById('loginScreen').style.display = 'grid';
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+      setAlert('ok', 'Logged out successfully.');
+    }
+
+    function buildNavigation() {
+      const nav = document.getElementById('nav');
+      nav.innerHTML = '';
+      navConfig.forEach((item) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = item.label;
+        button.dataset.nav = item.id;
+        if (state.activePane === item.id) button.classList.add('active');
+        button.addEventListener('click', () => setPane(item.id));
+        nav.appendChild(button);
+      });
+    }
+
+    function setPane(id) {
+      state.activePane = id;
+      document.querySelectorAll('.pane').forEach((p) => p.classList.add('hidden'));
+      const pane = document.getElementById('pane-' + id);
+      if (pane) pane.classList.remove('hidden');
+      buildNavigation();
+      updatePageHeader();
+
+      switch (id) {
+        case 'dashboard': renderDashboard(); break;
+        case 'reports': renderReports(); break;
+        case 'new-report': renderForm(); break;
+        case 'hierarchy': renderHierarchy(); break;
+        case 'users': renderUsers(); break;
+        case 'settings': renderSettings(); break;
+      }
+    }
+
+    function updatePageHeader() {
+      const titles = {
+        dashboard: ['Dashboard', 'Overview of all reports'],
+        reports: ['Reports', 'Review and manage checks'],
+        'new-report': ['New Report', 'Create new report'],
+        hierarchy: ['Hierarchy', 'Manage reporting structure'],
+        users: ['Users', 'Manage user access'],
+        settings: ['Settings', 'System information and reset']
+      };
+      const [title, sub] = titles[state.activePane] || ['', ''];
+      document.getElementById('pageTitle').textContent = title;
+      document.getElementById('pageSub').textContent = sub;
+      document.getElementById('whoChip').textContent = state.currentUser ? state.currentUser.role : 'Guest';
+      document.getElementById('sidebarName').textContent = state.currentUser ? state.currentUser.name : 'Guest';
+      document.getElementById('sidebarRole').textContent = state.currentUser ? state.currentUser.role : 'USER';
+      document.getElementById('sidebarAvatar').textContent = (state.currentUser ? state.currentUser.name : 'G').charAt(0).toUpperCase();
+    }
+
+    function renderDashboard() {
+      const data = getData();
+      const counts = {
+        total: data.reports.length,
+        pending: data.reports.filter((r) => r.status === 'PENDING').length,
+        approved: data.reports.filter((r) => r.status === 'APPROVED').length,
+        rejected: data.reports.filter((r) => r.status === 'REJECTED').length
+      };
+
+      const stats = [
+        { label: 'Total Reports', value: counts.total, meta: 'All entries', cls: 'ok' },
+        { label: 'Pending', value: counts.pending, meta: 'Awaiting action', cls: 'warn' },
+        { label: 'Approved', value: counts.approved, meta: 'Closed successfully', cls: 'ok' },
+        { label: 'Rejected', value: counts.rejected, meta: 'Needs review', cls: 'bad' }
+      ];
+
+      document.getElementById('statsGrid').innerHTML = stats.map((s) => `
+        <div class="stat ${s.cls}">
+          <div class="label">${s.label}</div>
+          <div class="value">${s.value}</div>
+          <div class="meta">${s.meta}</div>
+        </div>
+      `).join('');
+
+      const recent = [...data.reports].slice(-3).reverse();
+      const recentList = document.getElementById('recentReports');
+      recentList.innerHTML = recent.length ? recent.map((r) => `
+        <div class="report-item">
+          <div class="report-head">
+            <div>
+              <div class="report-id">${r.id}</div>
+              <div class="report-meta">${r.division} · ${r.box}</div>
+            </div>
+            <span class="status-pill status-${r.status}">${r.status}</span>
+          </div>
+          <div class="report-meta" style="margin-top: 8px;">${r.title}</div>
+        </div>
+      `).join('') : '<div class="empty">No reports available.</div>';
+    }
+
+    function renderReports() {
+      const data = getData();
+      const search = document.getElementById('searchReports').value.toLowerCase();
+      const status = document.getElementById('filterStatus').value;
+      const division = document.getElementById('filterDivision').value;
+
+      const divisions = [...new Set(data.reports.map((r) => r.division))];
+      const select = document.getElementById('filterDivision');
+      if (select.dataset.ready !== '1') {
+        select.innerHTML = '<option value="">All divisions</option>' + divisions.map((d) => `<option value="${d}">${d}</option>`).join('');
+        select.dataset.ready = '1';
+      }
+
+      const filtered = data.reports.filter((r) => {
+        const queryText = [r.id, r.title, r.box, r.supervisor, r.remarks].join(' ').toLowerCase();
+        const matchesQuery = !search || queryText.includes(search);
+        const matchesStatus = !status || r.status === status;
+        const matchesDivision = !division || r.division === division;
+        return matchesQuery && matchesStatus && matchesDivision;
+      });
+
+      const list = document.getElementById('reportList');
+      if (!filtered.length) {
+        list.innerHTML = '<div class="empty">No reports match the current filters.</div>';
+        return;
+      }
+
+      list.innerHTML = filtered.map((r) => `
+        <div class="report-item">
+          <div class="report-head">
+            <div>
+              <div class="report-id">${r.id}</div>
+              <div class="report-meta">${r.date} · ${r.division}</div>
+            </div>
+            <span class="status-pill status-${r.status}">${r.status}</span>
+          </div>
+          <div class="report-meta" style="margin-top: 8px;">${r.title}</div>
+          <div class="report-meta">Box: ${r.box} · Supervisor: ${r.supervisor}</div>
+          <div class="report-meta">Remarks: ${r.remarks || 'No remarks'}</div>
+          <div class="report-actions">
+            <button class="small-btn ok" data-action="approve" data-id="${r.id}">Approve</button>
+            <button class="small-btn bad" data-action="reject" data-id="${r.id}">Reject</button>
+            <button class="small-btn soft" data-action="view" data-id="${r.id}">View</button>
+          </div>
+        </div>
+      `).join('');
+
+      list.querySelectorAll('[data-action]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          const action = btn.dataset.action;
+          if (action === 'approve') updateReportStatus(id, 'APPROVED');
+          if (action === 'reject') updateReportStatus(id, 'REJECTED');
+          if (action === 'view') {
+            const item = getData().reports.find((r) => r.id === id);
+            alert('Report ' + id + '\n' + JSON.stringify(item, null, 2));
+          }
+        });
+      });
+    }
+
+    function updateReportStatus(id, status) {
+      const data = getData();
+      const item = data.reports.find((r) => r.id === id);
+      if (item) item.status = status;
+      saveData(data);
+      renderReports();
+      renderDashboard();
+    }
+
+    function makeReportId() {
+      const data = getData();
+      const max = data.reports.reduce((acc, r) => {
+        const n = parseInt((r.id || 'CR-0').replace(/\D/g, ''), 10) || 0;
+        return Math.max(acc, n);
+      }, 1000);
+      return `CR-${max + 1}`;
+    }
+
+    function getDefaultForm() {
+      return {
+        title: 'Field Check Report',
+        id: makeReportId(),
+        status: 'PENDING',
+        date: new Date().toISOString().slice(0, 10),
+        division: 'Central Division',
+        box: 'Box 15',
+        supervisor: 'Amit Shah',
+        remarks: 'Routine inspection completed.',
+        checks: { gate: 'YES', power: 'YES', safety: 'YES' },
+        photo: ''
+      };
+    }
+
+    function renderForm() {
+      if (!state.formDraft) state.formDraft = getDefaultForm();
+      const steps = ['Info', 'Checks', 'Attachment'];
+      const stepContent = [
+        `
+          <div class="form-grid">
+            <div class="field-row">
+              <label>Report ID</label>
+              <input value="${state.formDraft.id}" disabled />
+            </div>
+            <div class="field-row">
+              <label>Title</label>
+              <input value="${state.formDraft.title}" data-field="title" />
+            </div>
+            <div class="field-row">
+              <label>Date</label>
+              <input type="date" value="${state.formDraft.date}" data-field="date" />
+            </div>
+            <div class="field-row">
+              <label>Division</label>
+              <select data-field="division">
+                ${['Central Division', 'North Division', 'South Division'].map((d) => `<option value="${d}" ${state.formDraft.division === d ? 'selected' : ''}>${d}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field-row">
+              <label>Box</label>
+              <input value="${state.formDraft.box}" data-field="box" />
+            </div>
+            <div class="field-row">
+              <label>Supervisor</label>
+              <input value="${state.formDraft.supervisor}" data-field="supervisor" />
+            </div>
+            <div class="field-row full">
+              <label>Remarks</label>
+              <textarea class="textarea" data-field="remarks">${state.formDraft.remarks}</textarea>
+            </div>
+          </div>
+        `,
+        `
+          <div class="form-grid">
+            <div class="field-row full">
+              <label>Gate Closed</label>
+              <select data-check="gate">
+                <option value="YES" ${state.formDraft.checks.gate === 'YES' ? 'selected' : ''}>Yes</option>
+                <option value="NO" ${state.formDraft.checks.gate === 'NO' ? 'selected' : ''}>No</option>
+              </select>
+            </div>
+            <div class="field-row full">
+              <label>Power Online</label>
+              <select data-check="power">
+                <option value="YES" ${state.formDraft.checks.power === 'YES' ? 'selected' : ''}>Yes</option>
+                <option value="NO" ${state.formDraft.checks.power === 'NO' ? 'selected' : ''}>No</option>
+              </select>
+            </div>
+            <div class="field-row full">
+              <label>Safety Complete</label>
+              <select data-check="safety">
+                <option value="YES" ${state.formDraft.checks.safety === 'YES' ? 'selected' : ''}>Yes</option>
+                <option value="NO" ${state.formDraft.checks.safety === 'NO' ? 'selected' : ''}>No</option>
+              </select>
+            </div>
+          </div>
+        `,
+        `
+          <div class="form-grid">
+            <div class="field-row full">
+              <label>Photo (camera or gallery)</label>
+              <div class="photo-box">
+                <input type="file" accept="image/*" capture="environment" id="photoUpload" />
+                <div id="photoPreview" style="display: ${state.formDraft.photo ? 'block' : 'none'}; margin-top: 12px;">
+                  <img src="${state.formDraft.photo || ''}" alt="preview" />
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      ];
+
+      document.getElementById('steps').innerHTML = steps.map((label, index) => `
+        <div class="step ${index === state.formStep ? 'active' : ''} ${index < state.formStep ? 'done' : ''}">${index + 1}. ${label}</div>
+      `).join('');
+
+      document.getElementById('reportForm').innerHTML = stepContent[state.formStep];
+      document.getElementById('prevStepBtn').style.visibility = state.formStep === 0 ? 'hidden' : 'visible';
+      document.getElementById('nextStepBtn').textContent = state.formStep === 2 ? 'Save Report' : 'Next';
+
+      document.getElementById('prevStepBtn').onclick = () => {
+        if (state.formStep > 0) {
+          state.formStep -= 1;
+          renderForm();
+        }
+      };
+
+      document.getElementById('nextStepBtn').onclick = () => {
+        if (state.formStep < 2) {
+          state.formStep += 1;
+          renderForm();
+          return;
+        }
+        saveReport();
+      };
+
+      document.querySelectorAll('[data-field]').forEach((input) => {
+        input.addEventListener('input', (e) => {
+          state.formDraft[e.target.dataset.field] = e.target.value;
+        });
+      });
+
+      document.querySelectorAll('[data-check]').forEach((select) => {
+        select.addEventListener('change', (e) => {
+          state.formDraft.checks[e.target.dataset.check] = e.target.value;
+        });
+      });
+
+      const photoUpload = document.getElementById('photoUpload');
+      if (photoUpload) {
+        photoUpload.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            state.formDraft.photo = reader.result;
+            renderForm();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+
+    function saveReport() {
+      const data = getData();
+      data.reports.push({
+        id: state.formDraft.id,
+        title: state.formDraft.title,
+        status: 'PENDING',
+        division: state.formDraft.division,
+        box: state.formDraft.box,
+        supervisor: state.formDraft.supervisor,
+        date: state.formDraft.date,
+        remarks: state.formDraft.remarks,
+        photo: state.formDraft.photo || '',
+        checks: { ...state.formDraft.checks }
+      });
+      saveData(data);
+      state.formDraft = null;
+      state.formStep = 0;
+      setPane('reports');
+      renderReports();
+      renderDashboard();
+    }
+
+    function buildTree(items) {
+      const childrenMap = {};
+      items.forEach((item) => {
+        if (item.parentId) {
+          childrenMap[item.parentId] = childrenMap[item.parentId] || [];
+          childrenMap[item.parentId].push(item);
+        }
+      });
+      function map(node) {
+        return { ...node, children: (childrenMap[node.id] || []).map(map) };
+      }
+      return items.filter((item) => !item.parentId).map(map);
+    }
+
+    function renderTreeNode(node) {
+      const children = node.children && node.children.length ? `<div class="tree-children">${node.children.map(renderTreeNode).join('')}</div>` : '';
+      return `
+        <div>
+          <div class="tree-node">
+            <div class="left">
+              <div class="type-badge">${node.type}</div>
+              <div>
+                <div style="font-weight: 800;">${node.name}</div>
+                <div class="muted" style="font-size: 11px;">${node.meta || ''}</div>
+              </div>
+            </div>
+            <button class="small-btn soft" type="button" data-delete-id="${node.id}">Delete</button>
+          </div>
+          ${children}
+        </div>
+      `;
+    }
+
+    function renderHierarchy() {
+      const data = getData();
+      const treeData = buildTree(data.hierarchy);
+      const tree = document.getElementById('hierarchyTree');
+      tree.innerHTML = treeData.length ? treeData.map(renderTreeNode).join('') : '<div class="empty">No hierarchy items yet.</div>';
+      populateParentOptions();
+      document.getElementById('addNodeBtn').onclick = addHierarchyNode;
+      tree.querySelectorAll('[data-delete-id]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.deleteId;
+          const data2 = getData();
+          data2.hierarchy = data2.hierarchy.filter((item) => item.id !== id);
+          saveData(data2);
+          renderHierarchy();
+        });
+      });
+    }
+
+    function populateParentOptions() {
+      const data = getData();
+      const level = document.getElementById('newLevel').value;
+      const parentSelect = document.getElementById('newParent');
+      const allowed = {
+        REGION: ['REGION'],
+        STATE: ['REGION'],
+        DIVISION: ['STATE'],
+        SUPERVISOR: ['DIVISION'],
+        BOXEXEC: ['SUPERVISOR']
+      };
+      const candidates = data.hierarchy.filter((item) => allowed[level].includes(item.type));
+      parentSelect.innerHTML = candidates.length ? candidates.map((item) => `<option value="${item.id}">${item.name} (${item.type})</option>`).join('') : '<option value="">No valid parent</option>';
+    }
+
+    function addHierarchyNode() {
+      const level = document.getElementById('newLevel').value;
+      const parentId = document.getElementById('newParent').value;
+      const name = document.getElementById('newNodeName').value.trim();
+      const meta = document.getElementById('newNodeMeta').value.trim();
+      if (!name) return alert('Node name is required.');
+      const data = getData();
+      data.hierarchy.push({
+        id: `node-${Date.now()}`,
+        type: level,
+        name,
+        parentId: parentId || null,
+        meta: meta || `${level}-${data.hierarchy.length + 1}`
+      });
+      saveData(data);
+      document.getElementById('newNodeName').value = '';
+      document.getElementById('newNodeMeta').value = '';
+      renderHierarchy();
+    }
+
+    function renderUsers() {
+      const data = getData();
+      const list = document.createElement('div');
+      list.className = 'list';
+      data.users.forEach((u) => {
+        const item = document.createElement('div');
+        item.className = 'report-item';
+        item.innerHTML = `
+          <div class="report-head">
+            <div>
+              <div class="report-id">${u.username}</div>
+              <div class="report-meta">${u.name}</div>
+            </div>
+            <span class="status-pill status-APPROVED">${u.role}</span>
+          </div>
+          <div class="report-meta">Password: ${u.password}</div>
+        `;
+        list.appendChild(item);
+      });
+      const pane = document.getElementById('pane-users');
+      const old = pane.querySelector('.list');
+      if (old) old.remove();
+      pane.appendChild(list);
+    }
+
+    function createUser() {
+      const username = document.getElementById('userName').value.trim();
+      const password = document.getElementById('userPassword').value.trim();
+      const role = document.getElementById('userRole').value;
+      const location = document.getElementById('userLocation').value.trim();
+      if (!username || !password) return alert('Username and password are required.');
+      const data = getData();
+      data.users.push({ id: `u-${Date.now()}`, username, password, role, name: username.toUpperCase(), location: location || null });
+      saveData(data);
+      renderDemoUsers();
+      renderUsers();
+      document.getElementById('userName').value = '';
+      document.getElementById('userPassword').value = '';
+      document.getElementById('userLocation').value = '';
+    }
+
+    function renderSettings() {
+      const data = getData();
+      const info = [
+        { label: 'Users', value: data.users.length },
+        { label: 'Reports', value: data.reports.length },
+        { label: 'Hierarchy', value: data.hierarchy.length },
+        { label: 'Storage', value: 'LocalStorage' }
+      ];
+      document.getElementById('systemInfo').innerHTML = info.map((item) => `
+        <div class="stat ok">
+          <div class="label">${item.label}</div>
+          <div class="value">${item.value}</div>
+        </div>
+      `).join('');
+    }
+
+    function resetDemoData() {
+      saveData(DEFAULT_DATA);
+      renderDemoUsers();
+      renderDashboard();
+      renderReports();
+      renderHierarchy();
+      renderUsers();
+      renderSettings();
+      alert('Demo data restored.');
+    }
+
+    document.getElementById('togglePassword').addEventListener('click', () => {
+      const input = document.getElementById('password');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      document.getElementById('togglePassword').textContent = show ? 'Hide' : 'Show';
+    });
+
+    document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('logoutBtn').addEventListener('click', doLogout);
+    document.getElementById('createUserBtn').addEventListener('click', createUser);
+    document.getElementById('resetDataBtn').addEventListener('click', resetDemoData);
+    document.getElementById('newLevel').addEventListener('change', populateParentOptions);
+
+    document.querySelectorAll('[data-nav]').forEach((btn) => {
+      btn.addEventListener('click', () => setPane(btn.dataset.nav));
+    });
+
+    renderDemoUsers();
+    renderSettings();
+    buildNavigation();
+    updatePageHeader();
+  </script>
 </body>
 </html>
