@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checking Management System - dbcheklist</title>
+  <title>Checking Management System - All Firebase Data</title>
   
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -20,10 +20,14 @@
     .bg-approved { background-color: #4caf50; }
     .bg-rejected { background-color: #f44336; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
     th { background-color: #f5f5f5; }
     .flex-gap { display: flex; gap: 10px; }
-    .step-title { background: #e8eaf6; padding: 8px; border-radius: 4px; color: #3f51b5; font-weight: bold; }
+    .step-title { background: #e8eaf6; padding: 8px; border-radius: 4px; color: #3f51b5; font-weight: bold; margin-bottom: 12px; }
+    .tab-btn { width: auto; display: inline-block; padding: 8px 16px; margin-right: 5px; background: #e0e0e0; color: #333; }
+    .tab-btn.active { background: #673ab7; color: white; }
+    .alert-box { padding: 12px; background: #e8f5e9; color: #2e7d32; border-radius: 4px; margin-bottom: 15px; font-weight: bold; }
+    .img-preview { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc; }
   </style>
 
   <!-- SheetJS (Excel) & jsPDF (PDF) Libraries -->
@@ -43,22 +47,82 @@
 
 <div class="container">
 
-  <!-- 1. LOGIN SECTION -->
-  <div id="loginSection" class="card" style="max-width: 400px; margin: 50px auto;">
-    <h3>System Login</h3>
-    <label>Email</label>
-    <input type="email" id="loginEmail" placeholder="Enter Email">
-    <label>Password</label>
-    <input type="password" id="loginPassword" placeholder="Enter Password">
-    <button onclick="login()">Login</button>
+  <!-- LOGIN & REGISTER TABS -->
+  <div id="authSection" class="card" style="max-width: 480px; margin: 40px auto;">
+    <div style="margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
+      <button class="tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">Login</button>
+      <button class="tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">Register / Add User</button>
+    </div>
+
+    <!-- 1. LOGIN FORM -->
+    <div id="loginForm">
+      <h3>System Login</h3>
+      <label>Email Address</label>
+      <input type="email" id="loginEmail" placeholder="Enter Email">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter Password">
+      <button onclick="login()">Login</button>
+    </div>
+
+    <!-- 2. REGISTER / USER SETUP FORM -->
+    <div id="registerForm" class="hidden">
+      <h3>Register / Create User Account</h3>
+      <div id="regAlert" class="alert-box hidden">User created successfully! You can now login.</div>
+      
+      <label>Full Name *</label>
+      <input type="text" id="regName" placeholder="e.g. Arkan Shaikh">
+
+      <label>Email Address *</label>
+      <input type="email" id="regEmail" placeholder="e.g. arkan@example.com">
+
+      <label>Password *</label>
+      <input type="password" id="regPassword" placeholder="Minimum 6 characters">
+
+      <label>User Role *</label>
+      <select id="regRole">
+        <option value="admin" selected>Admin (Full Access - Show All Data)</option>
+        <option value="supervisor">Supervisor (Division Head)</option>
+        <option value="box_executive">Box Executive (Staff)</option>
+        <option value="state_head">State Head</option>
+        <option value="region_head">Region Head</option>
+      </select>
+
+      <label>Region ID</label>
+      <input type="text" id="regRegion" value="west_region">
+
+      <label>State ID</label>
+      <input type="text" id="regState" value="gujarat">
+
+      <label>Division ID</label>
+      <input type="text" id="regDivision" value="ahmedabad">
+
+      <button id="btnRegister" onclick="registerUser()" style="background: #2e7d32; margin-top: 15px;">Create User Account</button>
+    </div>
   </div>
 
-  <!-- 2. DASHBOARD SECTION -->
+  <!-- DASHBOARD SECTION -->
   <div id="dashboardSection" class="hidden">
     
+    <!-- User Management Card -->
+    <div id="adminUserMgmt" class="card hidden">
+      <h3>Admin Panel: Users List in System</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Division</th>
+            <th>State</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody"></tbody>
+      </table>
+    </div>
+
     <!-- Supervisor Action: Fill Report for Box Executive -->
     <div id="supervisorActions" class="card hidden">
-      <h3>Supervisor Panel: Fill Executive Report</h3>
+      <h3>Supervisor Panel: Fill Checking Inspection Report</h3>
       <button onclick="toggleReportForm()">+ Fill Checking Report for Box Executive</button>
     </div>
 
@@ -67,7 +131,7 @@
       <h3>New Checking Inspection Form</h3>
       
       <!-- Select Box Executive -->
-      <div class="card" style="background: #fafafa;">
+      <div class="card" style="background: #fafafa; border: 1px solid #ddd;">
         <label>Select Box Executive *</label>
         <select id="selectBoxExecutive">
           <option value="">-- Select Executive --</option>
@@ -143,26 +207,28 @@
 
     <!-- Reports Data Table -->
     <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>Submitted Checking Reports</h3>
-        <button onclick="exportToExcel()" style="background: #1b5e20; width: auto;">Export Excel</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h3>Firebase All Data / Reports List (<span id="totalCount">0</span>)</h3>
+        <div class="flex-gap">
+          <button onclick="loadAllFirebaseData()" style="background: #0288d1; width: auto;">🔄 Refresh All Data</button>
+          <button onclick="exportToExcel()" style="background: #1b5e20; width: auto;">Export Excel</button>
+        </div>
       </div>
 
       <table>
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Box Executive</th>
+            <th>Date / Time</th>
+            <th>Executive / User</th>
             <th>Supervisor</th>
-            <th>Division</th>
+            <th>Division / Info</th>
             <th>Status</th>
             <th>Cash Amount</th>
+            <th>Photos</th>
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody id="reportsTableBody">
-          <!-- Dynamically populated -->
-        </tbody>
+        <tbody id="reportsTableBody"></tbody>
       </table>
     </div>
 
@@ -172,11 +238,11 @@
 <!-- Firebase Modular SDK Script -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-  // Aapki Firebase Configuration Credentials
+  // Firebase Configuration (dbcheklist)
   const firebaseConfig = {
     apiKey: "AIzaSyANTc3mzX_onbPdYAVP0RFznTR52miGRFE",
     authDomain: "dbcheklist.firebaseapp.com",
@@ -203,112 +269,252 @@
       if (userDoc.exists()) {
         currentUserData = userDoc.data();
         currentUserData.uid = user.uid;
-        setupDashboardUI();
-        loadReportsByRole();
-        if (currentUserData.role === 'supervisor' || currentUserData.role === 'admin') {
-          loadDivisionExecutives();
-        }
       } else {
-        alert("User Profile Not Found in Firestore 'users' collection!");
+        currentUserData = {
+          uid: user.uid,
+          name: user.email ? user.email.split('@')[0] : "Admin User",
+          email: user.email,
+          role: "admin",
+          regionId: "west_region",
+          stateId: "gujarat",
+          divisionId: "ahmedabad"
+        };
+        await setDoc(doc(db, "users", user.uid), currentUserData);
+      }
+      setupDashboardUI();
+      loadAllFirebaseData();
+      loadDivisionExecutives();
+      if (currentUserData.role === 'admin') {
+        loadAllUsers();
       }
     } else {
       showLoginUI();
     }
   });
 
-  // Login Functionality
+  // Login Function
   window.login = async () => {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPassword').value;
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value.trim();
+    if (!email || !pass) {
+      alert("Please enter Email & Password!");
+      return;
+    }
     try {
       await signInWithEmailAndPassword(auth, email, pass);
     } catch (e) {
-      alert("Login Failed: " + e.message);
+      alert("Login Error: " + e.message);
+    }
+  };
+
+  // Register / Add User Function
+  window.registerUser = async () => {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const pass = document.getElementById('regPassword').value.trim();
+    const role = document.getElementById('regRole').value;
+    const regionId = document.getElementById('regRegion').value.trim();
+    const stateId = document.getElementById('regState').value.trim();
+    const divisionId = document.getElementById('regDivision').value.trim();
+
+    if (!name || !email || !pass) {
+      alert("Please fill Name, Email and Password!");
+      return;
+    }
+
+    const btn = document.getElementById('btnRegister');
+    btn.disabled = true;
+    btn.innerText = "Creating User...";
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      const newUid = userCredential.user.uid;
+
+      const userPayload = {
+        name,
+        email,
+        role,
+        regionId,
+        stateId,
+        divisionId,
+        createdAt: new Date().toISOString()
+      };
+
+      await setDoc(doc(db, "users", newUid), userPayload);
+
+      document.getElementById('regAlert').classList.remove('hidden');
+      alert(`User ${name} created successfully with role ${role.toUpperCase()}!`);
+
+      document.getElementById('regName').value = '';
+      document.getElementById('regEmail').value = '';
+      document.getElementById('regPassword').value = '';
+    } catch (err) {
+      alert("Registration Error: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "Create User Account";
     }
   };
 
   window.logout = () => signOut(auth);
 
+  window.switchAuthTab = (tab) => {
+    if (tab === 'login') {
+      document.getElementById('loginForm').classList.remove('hidden');
+      document.getElementById('registerForm').classList.add('hidden');
+      document.getElementById('tabLoginBtn').classList.add('active');
+      document.getElementById('tabRegisterBtn').classList.remove('active');
+    } else {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('registerForm').classList.remove('hidden');
+      document.getElementById('tabLoginBtn').classList.remove('active');
+      document.getElementById('tabRegisterBtn').classList.add('active');
+    }
+  };
+
   function showLoginUI() {
-    document.getElementById('loginSection').classList.remove('hidden');
+    document.getElementById('authSection').classList.remove('hidden');
     document.getElementById('dashboardSection').classList.add('hidden');
     document.getElementById('userInfo').classList.add('hidden');
   }
 
   function setupDashboardUI() {
-    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('authSection').classList.add('hidden');
     document.getElementById('dashboardSection').classList.remove('hidden');
     document.getElementById('userInfo').classList.remove('hidden');
 
     document.getElementById('userName').innerText = currentUserData.name || currentUserData.email;
-    document.getElementById('userRoleBadge').innerText = currentUserData.role.toUpperCase();
+    document.getElementById('userRoleBadge').innerText = (currentUserData.role || 'ADMIN').toUpperCase();
 
-    // Supervisor ya Admin ko hi Report filling access hoga
-    if (currentUserData.role === 'supervisor' || currentUserData.role === 'admin') {
-      document.getElementById('supervisorActions').classList.remove('hidden');
+    document.getElementById('supervisorActions').classList.remove('hidden');
+    if (currentUserData.role === 'admin') {
+      document.getElementById('adminUserMgmt').classList.remove('hidden');
     }
   }
 
-  // Division ke Box Executives ko dropdown mein load karna
+  async function loadAllUsers() {
+    try {
+      const snapshot = await getDocs(collection(db, "users"));
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = '';
+      snapshot.forEach(docSnap => {
+        const u = docSnap.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${u.name || 'N/A'}</b></td>
+          <td>${u.email || '-'}</td>
+          <td><span class="badge bg-approved">${(u.role || 'user').toUpperCase()}</span></td>
+          <td>${u.divisionId || '-'}</td>
+          <td>${u.stateId || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (e) {
+      console.error("Error loading users:", e);
+    }
+  }
+
   async function loadDivisionExecutives() {
-    const usersRef = collection(db, "users");
-    let q;
-    if (currentUserData.role === 'admin') {
-      q = query(usersRef, where("role", "==", "box_executive"));
-    } else {
-      q = query(usersRef, where("role", "==", "box_executive"), where("divisionId", "==", currentUserData.divisionId));
+    try {
+      const snapshot = await getDocs(collection(db, "users"));
+      const select = document.getElementById('selectBoxExecutive');
+      select.innerHTML = '<option value="">-- Select Executive --</option>';
+
+      let count = 0;
+      snapshot.forEach((docSnap) => {
+        const uData = docSnap.data();
+        if (uData.role === 'box_executive' || currentUserData.role === 'admin') {
+          count++;
+          const opt = document.createElement('option');
+          opt.value = docSnap.id;
+          opt.setAttribute('data-name', uData.name || uData.email);
+          opt.textContent = `${uData.name || uData.email} (${uData.role || 'Staff'})`;
+          select.appendChild(opt);
+        }
+      });
+
+      if (count === 0) {
+        const opt = document.createElement('option');
+        opt.value = "default_exec";
+        opt.setAttribute('data-name', "General Box Executive");
+        opt.textContent = "General Box Executive (Default)";
+        select.appendChild(opt);
+      }
+    } catch (e) {
+      console.error("Error loading executives:", e);
     }
-
-    const snapshot = await getDocs(q);
-    const select = document.getElementById('selectBoxExecutive');
-    select.innerHTML = '<option value="">-- Select Executive --</option>';
-
-    snapshot.forEach((docSnap) => {
-      const uData = docSnap.data();
-      const opt = document.createElement('option');
-      opt.value = docSnap.id;
-      opt.setAttribute('data-name', uData.name);
-      opt.textContent = `${uData.name} (${uData.divisionId || 'No Div'})`;
-      select.appendChild(opt);
-    });
   }
 
-  // Role Hierarchy wise Reports fetch karna
-  async function loadReportsByRole() {
-    let q;
-    const reportsRef = collection(db, "reports");
-
-    if (currentUserData.role === 'admin') {
-      q = query(reportsRef);
-    } else if (currentUserData.role === 'region_head') {
-      q = query(reportsRef, where("regionId", "==", currentUserData.regionId));
-    } else if (currentUserData.role === 'state_head') {
-      q = query(reportsRef, where("stateId", "==", currentUserData.stateId));
-    } else if (currentUserData.role === 'supervisor') {
-      q = query(reportsRef, where("divisionId", "==", currentUserData.divisionId));
-    } else {
-      // Box Executive view only
-      q = query(reportsRef, where("executiveUid", "==", currentUserData.uid));
-    }
-
-    const querySnapshot = await getDocs(q);
+  // Fetch ALL Firebase Data (From multiple possible collections without restrictions)
+  window.loadAllFirebaseData = async () => {
     fetchedReports = [];
     const tableBody = document.getElementById('reportsTableBody');
+    tableBody.innerHTML = '<tr><td colspan="8">Loading data from Firebase...</td></tr>';
+
+    const collectionsToFetch = ["reports", "checking_reports", "checkings", "inspection_reports"];
+    let totalDocsFound = 0;
+
+    for (const collName of collectionsToFetch) {
+      try {
+        const snap = await getDocs(collection(db, collName));
+        snap.forEach((docSnap) => {
+          totalDocsFound++;
+          const data = docSnap.data();
+          data.id = docSnap.id;
+          data._collection = collName;
+          fetchedReports.push(data);
+        });
+      } catch (err) {
+        console.warn(`Collection ${collName} not found or inaccessible:`, err);
+      }
+    }
+
+    document.getElementById('totalCount').innerText = fetchedReports.length;
     tableBody.innerHTML = '';
 
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      data.id = docSnap.id;
-      fetchedReports.push(data);
+    if (fetchedReports.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="8">No records found in Firebase database yet. Fill a report to create first entry!</td></tr>';
+      return;
+    }
+
+    // Sort by timestamp if available
+    fetchedReports.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.timestamp || 0);
+      const dateB = new Date(b.createdAt || b.timestamp || 0);
+      return dateB - dateA;
+    });
+
+      fetchedReports.forEach((data) => {
+      // Safe Extractors for old and new structures
+      const execName = data.executiveName || data.userName || data.name || data.userId || "Executive";
+      const supName = data.supervisorName || data.createdBy || "Supervisor";
+      const divInfo = data.divisionId || data.division || data.stateId || "-";
+      const status = data.status || "pending";
+      
+      // Amount extraction
+      const cashAmt = data.amountChecking?.cashAmount || data.cashAmount || data.amount || 0;
+      
+      // Photos extraction
+      const cashPhoto = data.amountChecking?.cashPhotoUrl || data.cashPhotoUrl || data.cashPhoto || "";
+      const stockPhoto = data.stockChecking?.stockPhotoUrl || data.stockPhotoUrl || data.stockPhoto || "";
+      
+      const createdDate = data.createdAt || data.timestamp;
+      const dateStr = createdDate ? new Date(createdDate).toLocaleString() : "Old Record";
+
+      let photoHtml = "";
+      if (cashPhoto) photoHtml += `<a href="${cashPhoto}" target="_blank"><img src="${cashPhoto}" class="img-preview" title="Cash Photo"></a> `;
+      if (stockPhoto) photoHtml += `<a href="${stockPhoto}" target="_blank"><img src="${stockPhoto}" class="img-preview" title="Stock Photo"></a>`;
+      if (!photoHtml) photoHtml = "-";
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${new Date(data.createdAt).toLocaleDateString()}</td>
-        <td>${data.executiveName}</td>
-        <td>${data.supervisorName}</td>
-        <td>${data.divisionId}</td>
-        <td><span class="badge bg-${data.status}">${data.status.toUpperCase()}</span></td>
-        <td>₹${data.amountChecking?.cashAmount || 0}</td>
+        <td>${dateStr}</td>
+        <td><b>${execName}</b></td>
+        <td>${supName}</td>
+        <td>${divInfo}</td>
+        <td><span class="badge bg-${status.toLowerCase()}">${status.toUpperCase()}</span></td>
+        <td><b>₹${cashAmt}</b></td>
+        <td>${photoHtml}</td>
         <td>
           ${getActionButton(data)}
           <button onclick="downloadPDF('${data.id}')" style="background:#0288d1; width:auto; padding:4px 8px;">PDF</button>
@@ -316,25 +522,28 @@
       `;
       tableBody.appendChild(tr);
     });
-  }
+  };
 
   function getActionButton(report) {
-    if ((currentUserData.role === 'admin' || currentUserData.role === 'state_head') && report.status === 'pending') {
+    if (report.status === 'pending' || !report.status) {
       return `
-        <button onclick="updateReportStatus('${report.id}', 'approved')" style="background:#2e7d32; width:auto; padding:4px 8px;">Approve</button>
-        <button onclick="updateReportStatus('${report.id}', 'rejected')" style="background:#c62828; width:auto; padding:4px 8px;">Reject</button>
+        <button onclick="updateReportStatus('${report._collection || 'reports'}', '${report.id}', 'approved')" style="background:#2e7d32; width:auto; padding:4px 8px;">Approve</button>
+        <button onclick="updateReportStatus('${report._collection || 'reports'}', '${report.id}', 'rejected')" style="background:#c62828; width:auto; padding:4px 8px;">Reject</button>
       `;
     }
     return '';
   }
 
-  window.updateReportStatus = async (reportId, newStatus) => {
-    await updateDoc(doc(db, "reports", reportId), { status: newStatus });
-    alert(`Report ${newStatus} successfully!`);
-    loadReportsByRole();
+  window.updateReportStatus = async (collName, reportId, newStatus) => {
+    try {
+      await updateDoc(doc(db, collName, reportId), { status: newStatus });
+      alert(`Report status updated to ${newStatus.toUpperCase()}!`);
+      loadAllFirebaseData();
+    } catch (e) {
+      alert("Error updating status: " + e.message);
+    }
   };
 
-  // Helper function for uploading files to Firebase Storage
   async function uploadFile(fileInputId, folder) {
     const file = document.getElementById(fileInputId).files[0];
     if (!file) return "";
@@ -343,20 +552,18 @@
     return await getDownloadURL(storageRef);
   }
 
-  // Report Submission Function
   window.submitReport = async () => {
     const execSelect = document.getElementById('selectBoxExecutive');
     if (!execSelect.value) {
-      alert("Kripya Box Executive select karein!");
+      alert("Please select a Box Executive!");
       return;
     }
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
-    btn.innerText = "Uploading & Saving...";
+    btn.innerText = "Saving & Uploading...";
 
     try {
-      // Photos upload to Firebase Storage
       const stockPhotoUrl = await uploadFile('stockPhoto', 'stock_photos');
       const chabiPhotoUrl = await uploadFile('chabiPhoto', 'chabi_photos');
       const rasaiPhotoUrl = await uploadFile('rasaiPhoto', 'rasai_photos');
@@ -372,9 +579,9 @@
         executiveName: executiveName,
         supervisorUid: currentUserData.uid,
         supervisorName: currentUserData.name || currentUserData.email,
-        regionId: currentUserData.regionId || "",
-        stateId: currentUserData.stateId || "",
-        divisionId: currentUserData.divisionId || "",
+        regionId: currentUserData.regionId || "west_region",
+        stateId: currentUserData.stateId || "gujarat",
+        divisionId: currentUserData.divisionId || "ahmedabad",
         status: "pending",
         createdAt: new Date().toISOString(),
         stockChecking: {
@@ -410,11 +617,10 @@
       };
 
       await addDoc(collection(db, "reports"), payload);
-      alert("Report successfully saved into Firebase!");
+      alert("Inspection report successfully saved to Firebase!");
       document.getElementById('reportFormCard').classList.add('hidden');
-      loadReportsByRole();
+      loadAllFirebaseData();
     } catch (err) {
-      console.error(err);
       alert("Submission Error: " + err.message);
     } finally {
       btn.disabled = false;
@@ -422,43 +628,46 @@
     }
   };
 
-  // Export to Excel
   window.exportToExcel = () => {
     const excelData = fetchedReports.map(r => ({
-      Date: new Date(r.createdAt).toLocaleDateString(),
-      ExecutiveName: r.executiveName,
-      SupervisorName: r.supervisorName,
-      Division: r.divisionId,
-      Status: r.status,
-      NewBoxStock: r.stockChecking?.newBox,
-      BrokenBoxStock: r.stockChecking?.brokenBox,
-      CashAmount: r.amountChecking?.cashAmount
+      Date: r.createdAt || r.timestamp || 'N/A',
+      ExecutiveName: r.executiveName || r.userName || r.name || 'Executive',
+      SupervisorName: r.supervisorName || r.createdBy || 'Supervisor',
+      Division: r.divisionId || r.division || 'N/A',
+      Status: r.status || 'pending',
+      NewBoxStock: r.stockChecking?.newBox || r.newBox || '-',
+      BrokenBoxStock: r.stockChecking?.brokenBox || r.brokenBox || '-',
+      CashAmount: r.amountChecking?.cashAmount || r.cashAmount || r.amount || 0
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Reports");
-    XLSX.writeFile(workbook, "Checking_Reports_dbcheklist.xlsx");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Firebase_Reports");
+    XLSX.writeFile(workbook, "Firebase_All_Data_Reports.xlsx");
   };
 
-  // PDF Download
   window.downloadPDF = (reportId) => {
     const { jsPDF } = window.jspdf;
     const docPdf = new jsPDF();
     const report = fetchedReports.find(r => r.id === reportId);
+    if (!report) return;
 
     docPdf.setFontSize(16);
     docPdf.text("Checking Inspection Report", 20, 20);
 
-    docPdf.setFontSize(11);
-    docPdf.text(`Date: ${new Date(report.createdAt).toLocaleDateString()}`, 20, 32);
-    docPdf.text(`Box Executive: ${report.executiveName}`, 20, 40);
-    docPdf.text(`Supervisor: ${report.supervisorName}`, 20, 48);
-    docPdf.text(`Division: ${report.divisionId}`, 20, 56);
-    docPdf.text(`Status: ${report.status.toUpperCase()}`, 20, 64);
-    docPdf.text(`Cash Amount: Rs. ${report.amountChecking?.cashAmount || 0}`, 20, 72);
+    const execName = report.executiveName || report.userName || report.name || "Executive";
+    const supName = report.supervisorName || report.createdBy || "Supervisor";
+    const cashAmt = report.amountChecking?.cashAmount || report.cashAmount || report.amount || 0;
 
-    docPdf.save(`Report_${report.executiveName}_${reportId}.pdf`);
+    docPdf.setFontSize(11);
+    docPdf.text(`Date: ${report.createdAt || report.timestamp || 'N/A'}`, 20, 32);
+    docPdf.text(`Box Executive: ${execName}`, 20, 40);
+    docPdf.text(`Supervisor: ${supName}`, 20, 48);
+    docPdf.text(`Division: ${report.divisionId || report.division || 'N/A'}`, 20, 56);
+    docPdf.text(`Status: ${(report.status || 'pending').toUpperCase()}`, 20, 64);
+    docPdf.text(`Cash Amount: Rs. ${cashAmt}`, 20, 72);
+
+    docPdf.save(`Report_${execName}_${reportId}.pdf`);
   };
 
   window.toggleReportForm = () => {
