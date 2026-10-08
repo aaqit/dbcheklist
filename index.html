@@ -22,15 +22,16 @@
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
     th { background-color: #f5f5f5; }
-    .flex-gap { display: flex; gap: 10px; }
+    .flex-gap { display: flex; gap: 10px; flex-wrap: wrap; }
     .step-title { background: #e8eaf6; padding: 8px; border-radius: 4px; color: #3f51b5; font-weight: bold; margin-bottom: 12px; }
-    .tab-btn { width: auto; display: inline-block; padding: 8px 16px; margin-right: 5px; background: #e0e0e0; color: #333; }
+    .tab-btn { width: auto; display: inline-block; padding: 8px 16px; margin-right: 5px; background: #e0e0e0; color: #333; cursor: pointer; border-radius: 4px; }
     .tab-btn.active { background: #673ab7; color: white; }
     .alert-box { padding: 12px; background: #e8f5e9; color: #2e7d32; border-radius: 4px; margin-bottom: 15px; font-weight: bold; }
     .img-preview { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc; }
+    .error-msg { color: #d32f2f; font-weight: bold; margin: 10px 0; padding: 10px; background: #ffebee; border-radius: 4px; }
+    .success-msg { color: #388e3c; font-weight: bold; margin: 10px 0; padding: 10px; background: #e8f5e9; border-radius: 4px; }
   </style>
 
-  <!-- SheetJS (Excel) & jsPDF (PDF) Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -47,37 +48,33 @@
 
 <div class="container">
 
-  <!-- LOGIN & REGISTER TABS -->
   <div id="authSection" class="card" style="max-width: 480px; margin: 40px auto;">
     <div style="margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
       <button class="tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">Login</button>
       <button class="tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">Register / Add User</button>
     </div>
 
-    <!-- 1. LOGIN FORM -->
     <div id="loginForm">
       <h3>System Login</h3>
+      <div id="loginError" class="error-msg hidden"></div>
       <label>Email Address</label>
       <input type="email" id="loginEmail" placeholder="Enter Email">
       <label>Password</label>
       <input type="password" id="loginPassword" placeholder="Enter Password">
-      <button onclick="login()">Login</button>
+      <button onclick="login()" id="loginBtn">Login</button>
     </div>
 
-    <!-- 2. REGISTER / USER SETUP FORM -->
     <div id="registerForm" class="hidden">
       <h3>Register / Create User Account</h3>
-      <div id="regAlert" class="alert-box hidden">User created successfully! You can now login.</div>
+      <div id="regAlert" class="success-msg hidden">User created successfully! You can now login.</div>
+      <div id="regError" class="error-msg hidden"></div>
       
       <label>Full Name *</label>
       <input type="text" id="regName" placeholder="e.g. Arkan Shaikh">
-
       <label>Email Address *</label>
       <input type="email" id="regEmail" placeholder="e.g. arkan@example.com">
-
       <label>Password *</label>
       <input type="password" id="regPassword" placeholder="Minimum 6 characters">
-
       <label>User Role *</label>
       <select id="regRole">
         <option value="admin" selected>Admin (Full Access - Show All Data)</option>
@@ -86,24 +83,17 @@
         <option value="state_head">State Head</option>
         <option value="region_head">Region Head</option>
       </select>
-
       <label>Region ID</label>
       <input type="text" id="regRegion" value="west_region">
-
       <label>State ID</label>
       <input type="text" id="regState" value="gujarat">
-
       <label>Division ID</label>
       <input type="text" id="regDivision" value="ahmedabad">
-
       <button id="btnRegister" onclick="registerUser()" style="background: #2e7d32; margin-top: 15px;">Create User Account</button>
     </div>
   </div>
 
-  <!-- DASHBOARD SECTION -->
   <div id="dashboardSection" class="hidden">
-    
-    <!-- User Management Card -->
     <div id="adminUserMgmt" class="card hidden">
       <h3>Admin Panel: Users List in System</h3>
       <table>
@@ -120,17 +110,14 @@
       </table>
     </div>
 
-    <!-- Supervisor Action: Fill Report for Box Executive -->
     <div id="supervisorActions" class="card hidden">
       <h3>Supervisor Panel: Fill Checking Inspection Report</h3>
       <button onclick="toggleReportForm()">+ Fill Checking Report for Box Executive</button>
     </div>
 
-    <!-- Multi-Step Report Form (Filled by Supervisor) -->
     <div id="reportFormCard" class="card hidden">
       <h3>New Checking Inspection Form</h3>
-      
-      <!-- Select Box Executive -->
+      <div id="formError" class="error-msg hidden"></div>
       <div class="card" style="background: #fafafa; border: 1px solid #ddd;">
         <label>Select Box Executive *</label>
         <select id="selectBoxExecutive">
@@ -138,74 +125,69 @@
         </select>
       </div>
 
-      <!-- Step 1: Stock Checking -->
       <div id="step1">
         <div class="step-title">Step 1: Stock Checking</div>
-        <label>New Box Stock Tadad *</label><input type="number" id="newBox">
-        <label>Broken Box Stock Tadad *</label><input type="number" id="brokenBox">
-        <label>Stock Currant Photo *</label><input type="file" id="stockPhoto" accept="image/*">
-        <label>Remark *</label><input type="text" id="stockRemark">
+        <label>New Box Stock Tadad *</label><input type="number" id="newBox" min="0" required>
+        <label>Broken Box Stock Tadad *</label><input type="number" id="brokenBox" min="0" required>
+        <label>Stock Currant Photo *</label><input type="file" id="stockPhoto" accept="image/*" required>
+        <label>Remark *</label><input type="text" id="stockRemark" required>
         <button onclick="goToStep(2)">Next</button>
       </div>
 
-      <!-- Step 2: Chabiya Checking -->
       <div id="step2" class="hidden">
         <div class="step-title">Step 2: Chabiya Checking</div>
-        <label>On shop Box Kitne Hai? *</label><input type="number" id="onShopBox">
-        <label>Kitni Chabiya Bani Huvi Hai? *</label><input type="number" id="chabiBani">
-        <label>Kitni Chabiya Check Ki ? *</label><input type="number" id="chabiChecked">
-        <label>Kitni Chabiya Galat Thi?</label><input type="number" id="chabiGalat">
-        <label>Kitni Chabiya Update Ki ?</label><input type="number" id="chabiUpdated">
+        <label>On shop Box Kitne Hai? *</label><input type="number" id="onShopBox" min="0" required>
+        <label>Kitni Chabiya Bani Huvi Hai? *</label><input type="number" id="chabiBani" min="0" required>
+        <label>Kitni Chabiya Check Ki ? *</label><input type="number" id="chabiChecked" min="0" required>
+        <label>Kitni Chabiya Galat Thi?</label><input type="number" id="chabiGalat" min="0">
+        <label>Kitni Chabiya Update Ki ?</label><input type="number" id="chabiUpdated" min="0">
         <label>Chabiyo Ka Photo</label><input type="file" id="chabiPhoto" accept="image/*">
-        <label>Remark *</label><input type="text" id="chabiRemark">
+        <label>Remark *</label><input type="text" id="chabiRemark" required>
         <div class="flex-gap">
-          <button onclick="goToStep(1)">Back</button>
-          <button onclick="goToStep(3)">Next</button>
+          <button onclick="goToStep(1)" style="flex: 1;">Back</button>
+          <button onclick="goToStep(3)" style="flex: 1;">Next</button>
         </div>
       </div>
 
-      <!-- Step 3: Rasai Kit Checking -->
       <div id="step3" class="hidden">
         <div class="step-title">Step 3: Rasai Kit Checking</div>
         <label>Rasai Kit & Bag Check Kiya ? *</label>
-        <select id="rasaiCheck">
+        <select id="rasaiCheck" required>
+          <option value="">-- Select --</option>
           <option value="Yes">Yes</option>
           <option value="No">No</option>
         </select>
-        <label>Rasai Kit & Bag Photo *</label><input type="file" id="rasaiPhoto" accept="image/*">
+        <label>Rasai Kit & Bag Photo *</label><input type="file" id="rasaiPhoto" accept="image/*" required>
         <div class="flex-gap">
-          <button onclick="goToStep(2)">Back</button>
-          <button onclick="goToStep(4)">Next</button>
+          <button onclick="goToStep(2)" style="flex: 1;">Back</button>
+          <button onclick="goToStep(4)" style="flex: 1;">Next</button>
         </div>
       </div>
 
-      <!-- Step 4: Inventory Checking -->
       <div id="step4" class="hidden">
         <div class="step-title">Step 4: Inventory Checking</div>
-        <label>Kitne Lock Hai? *</label><input type="number" id="locksCount">
-        <label>Steekers Kitne Hai? *</label><input type="number" id="stickersCount">
-        <label>Pouch, Card & Ring Kitni Hai ? *</label><input type="number" id="pouchCardRingCount">
+        <label>Kitne Lock Hai? *</label><input type="number" id="locksCount" min="0" required>
+        <label>Steekers Kitne Hai? *</label><input type="number" id="stickersCount" min="0" required>
+        <label>Pouch, Card & Ring Kitni Hai ? *</label><input type="number" id="pouchCardRingCount" min="0" required>
         <div class="flex-gap">
-          <button onclick="goToStep(3)">Back</button>
-          <button onclick="goToStep(5)">Next</button>
+          <button onclick="goToStep(3)" style="flex: 1;">Back</button>
+          <button onclick="goToStep(5)" style="flex: 1;">Next</button>
         </div>
       </div>
 
-      <!-- Step 5: Amount Checking & Submit -->
       <div id="step5" class="hidden">
         <div class="step-title">Step 5: Current Month Amount Checking</div>
-        <label>Current Month Till Date Dashboard Photo *</label><input type="file" id="dashboardPhoto" accept="image/*">
-        <label>Current Month Till Date E rasid Photo *</label><input type="file" id="eRasidPhoto" accept="image/*">
-        <label>Cash Photo *</label><input type="file" id="cashPhoto" accept="image/*">
-        <label>Kitni Cash Maujud Hai ?? *</label><input type="number" id="cashAmount">
+        <label>Current Month Till Date Dashboard Photo *</label><input type="file" id="dashboardPhoto" accept="image/*" required>
+        <label>Current Month Till Date E rasid Photo *</label><input type="file" id="eRasidPhoto" accept="image/*" required>
+        <label>Cash Photo *</label><input type="file" id="cashPhoto" accept="image/*" required>
+        <label>Kitni Cash Maujud Hai ?? *</label><input type="number" id="cashAmount" min="0" required>
         <div class="flex-gap">
-          <button onclick="goToStep(4)">Back</button>
-          <button id="btnSubmit" onclick="submitReport()" style="background: #2e7d32;">Submit Report</button>
+          <button onclick="goToStep(4)" style="flex: 1;">Back</button>
+          <button id="btnSubmit" onclick="submitReport()" style="background: #2e7d32; flex: 1;">Submit Report</button>
         </div>
       </div>
     </div>
 
-    <!-- Reports Data Table -->
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <h3>Firebase All Data / Reports List (<span id="totalCount">0</span>)</h3>
@@ -235,14 +217,12 @@
   </div>
 </div>
 
-<!-- Firebase Modular SDK Script -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-  // Firebase Configuration (dbcheklist)
   const firebaseConfig = {
     apiKey: "AIzaSyANTc3mzX_onbPdYAVP0RFznTR52miGRFE",
     authDomain: "dbcheklist.firebaseapp.com",
@@ -262,97 +242,123 @@
   let currentUserData = null;
   let fetchedReports = [];
 
-  // Auth State Listener
+  function showError(elementId, message) {
+    const el = document.getElementById(elementId);
+    if (el) {
+      el.textContent = message;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 5000);
+    }
+  }
+
+  function escapeHtml(text) {
+    const value = String(text ?? '');
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return value.replace(/[&<>"']/g, m => map[m]);
+  }
+
+  function validateFile(file) {
+    if (!file) return { valid: false, error: 'File not selected' };
+    const maxSize = 5 * 1024 * 1024;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (file.size > maxSize) return { valid: false, error: `File size must be less than 5MB (Current: ${(file.size / 1024 / 1024).toFixed(2)}MB)` };
+    if (!allowedTypes.includes(file.type)) return { valid: false, error: 'Invalid file type. Allowed: JPG, PNG, WebP, GIF' };
+    return { valid: true };
+  }
+
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        currentUserData = userDoc.data();
-        currentUserData.uid = user.uid;
-      } else {
-        currentUserData = {
-          uid: user.uid,
-          name: user.email ? user.email.split('@')[0] : "Admin User",
-          email: user.email,
-          role: "admin",
-          regionId: "west_region",
-          stateId: "gujarat",
-          divisionId: "ahmedabad"
-        };
-        await setDoc(doc(db, "users", user.uid), currentUserData);
-      }
-      setupDashboardUI();
-      loadAllFirebaseData();
-      loadDivisionExecutives();
-      if (currentUserData.role === 'admin') {
-        loadAllUsers();
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          currentUserData = userDoc.data();
+          currentUserData.uid = user.uid;
+        } else {
+          currentUserData = {
+            uid: user.uid,
+            name: user.email ? user.email.split('@')[0] : 'Admin User',
+            email: user.email,
+            role: 'admin',
+            regionId: 'west_region',
+            stateId: 'gujarat',
+            divisionId: 'ahmedabad'
+          };
+          await setDoc(doc(db, 'users', user.uid), currentUserData);
+        }
+        setupDashboardUI();
+        loadAllFirebaseData();
+        loadDivisionExecutives();
+        if (currentUserData.role === 'admin') loadAllUsers();
+      } catch (e) {
+        console.error('Auth state error:', e);
+        showError('loginError', 'Error loading user data: ' + e.message);
       }
     } else {
       showLoginUI();
     }
   });
 
-  // Login Function
   window.login = async () => {
     const email = document.getElementById('loginEmail').value.trim();
     const pass = document.getElementById('loginPassword').value.trim();
+    const btn = document.getElementById('loginBtn');
     if (!email || !pass) {
-      alert("Please enter Email & Password!");
+      showError('loginError', '⚠️ Please enter Email & Password!');
       return;
     }
+    btn.disabled = true;
+    btn.innerText = 'Logging in...';
     try {
       await signInWithEmailAndPassword(auth, email, pass);
+      document.getElementById('loginError').classList.add('hidden');
     } catch (e) {
-      alert("Login Error: " + e.message);
+      showError('loginError', '❌ Login Error: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'Login';
     }
   };
 
-  // Register / Add User Function
   window.registerUser = async () => {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const pass = document.getElementById('regPassword').value.trim();
     const role = document.getElementById('regRole').value;
-    const regionId = document.getElementById('regRegion').value.trim();
-    const stateId = document.getElementById('regState').value.trim();
-    const divisionId = document.getElementById('regDivision').value.trim();
-
     if (!name || !email || !pass) {
-      alert("Please fill Name, Email and Password!");
+      showError('regError', '⚠️ Please fill Name, Email and Password!');
       return;
     }
-
+    if (pass.length < 6) {
+      showError('regError', '⚠️ Password must be at least 6 characters!');
+      return;
+    }
     const btn = document.getElementById('btnRegister');
     btn.disabled = true;
-    btn.innerText = "Creating User...";
-
+    btn.innerText = 'Creating User...';
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-      const newUid = userCredential.user.uid;
-
-      const userPayload = {
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
         name,
         email,
         role,
-        regionId,
-        stateId,
-        divisionId,
+        regionId: document.getElementById('regRegion').value.trim() || 'west_region',
+        stateId: document.getElementById('regState').value.trim() || 'gujarat',
+        divisionId: document.getElementById('regDivision').value.trim() || 'ahmedabad',
         createdAt: new Date().toISOString()
-      };
-
-      await setDoc(doc(db, "users", newUid), userPayload);
-
+      });
       document.getElementById('regAlert').classList.remove('hidden');
-      alert(`User ${name} created successfully with role ${role.toUpperCase()}!`);
-
-      document.getElementById('regName').value = '';
-      document.getElementById('regEmail').value = '';
-      document.getElementById('regPassword').value = '';
+      setTimeout(() => {
+        document.getElementById('regAlert').classList.add('hidden');
+        document.getElementById('regName').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPassword').value = '';
+        switchAuthTab('login');
+      }, 2000);
     } catch (err) {
-      alert("Registration Error: " + err.message);
+      showError('regError', '❌ Registration Error: ' + err.message);
     } finally {
       btn.disabled = false;
-      btn.innerText = "Create User Account";
+      btn.innerText = 'Create User Account';
     }
   };
 
@@ -382,46 +388,41 @@
     document.getElementById('authSection').classList.add('hidden');
     document.getElementById('dashboardSection').classList.remove('hidden');
     document.getElementById('userInfo').classList.remove('hidden');
-
     document.getElementById('userName').innerText = currentUserData.name || currentUserData.email;
     document.getElementById('userRoleBadge').innerText = (currentUserData.role || 'ADMIN').toUpperCase();
-
     document.getElementById('supervisorActions').classList.remove('hidden');
-    if (currentUserData.role === 'admin') {
-      document.getElementById('adminUserMgmt').classList.remove('hidden');
-    }
+    if (currentUserData.role === 'admin') document.getElementById('adminUserMgmt').classList.remove('hidden');
   }
 
   async function loadAllUsers() {
     try {
-      const snapshot = await getDocs(collection(db, "users"));
+      const snapshot = await getDocs(collection(db, 'users'));
       const tbody = document.getElementById('usersTableBody');
       tbody.innerHTML = '';
       snapshot.forEach(docSnap => {
         const u = docSnap.data();
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><b>${u.name || 'N/A'}</b></td>
-          <td>${u.email || '-'}</td>
+          <td><b>${escapeHtml(u.name || 'N/A')}</b></td>
+          <td>${escapeHtml(u.email || '-')}</td>
           <td><span class="badge bg-approved">${(u.role || 'user').toUpperCase()}</span></td>
-          <td>${u.divisionId || '-'}</td>
-          <td>${u.stateId || '-'}</td>
+          <td>${escapeHtml(u.divisionId || '-')}</td>
+          <td>${escapeHtml(u.stateId || '-')}</td>
         `;
         tbody.appendChild(tr);
       });
     } catch (e) {
-      console.error("Error loading users:", e);
+      console.error('Error loading users:', e);
     }
   }
 
   async function loadDivisionExecutives() {
     try {
-      const snapshot = await getDocs(collection(db, "users"));
+      const snapshot = await getDocs(collection(db, 'users'));
       const select = document.getElementById('selectBoxExecutive');
       select.innerHTML = '<option value="">-- Select Executive --</option>';
-
       let count = 0;
-      snapshot.forEach((docSnap) => {
+      snapshot.forEach(docSnap => {
         const uData = docSnap.data();
         if (uData.role === 'box_executive' || currentUserData.role === 'admin') {
           count++;
@@ -432,103 +433,92 @@
           select.appendChild(opt);
         }
       });
-
       if (count === 0) {
         const opt = document.createElement('option');
-        opt.value = "default_exec";
-        opt.setAttribute('data-name', "General Box Executive");
-        opt.textContent = "General Box Executive (Default)";
+        opt.value = 'default_exec';
+        opt.setAttribute('data-name', 'General Box Executive');
+        opt.textContent = 'General Box Executive (Default)';
         select.appendChild(opt);
       }
     } catch (e) {
-      console.error("Error loading executives:", e);
+      console.error('Error loading executives:', e);
     }
   }
 
-  // Fetch ALL Firebase Data (From multiple possible collections without restrictions)
   window.loadAllFirebaseData = async () => {
     fetchedReports = [];
     const tableBody = document.getElementById('reportsTableBody');
     tableBody.innerHTML = '<tr><td colspan="8">Loading data from Firebase...</td></tr>';
 
-    const collectionsToFetch = ["reports", "checking_reports", "checkings", "inspection_reports"];
-    let totalDocsFound = 0;
-
+    const collectionsToFetch = ['reports', 'checking_reports', 'checkings', 'inspection_reports'];
     for (const collName of collectionsToFetch) {
       try {
         const snap = await getDocs(collection(db, collName));
-        snap.forEach((docSnap) => {
-          totalDocsFound++;
+        snap.forEach(docSnap => {
           const data = docSnap.data();
           data.id = docSnap.id;
           data._collection = collName;
           fetchedReports.push(data);
         });
       } catch (err) {
-        console.warn(`Collection ${collName} not found or inaccessible:`, err);
+        console.warn(`Collection ${collName} not found or inaccessible`);
       }
     }
 
     document.getElementById('totalCount').innerText = fetchedReports.length;
     tableBody.innerHTML = '';
-
     if (fetchedReports.length === 0) {
       tableBody.innerHTML = '<tr><td colspan="8">No records found in Firebase database yet. Fill a report to create first entry!</td></tr>';
       return;
     }
 
-    // Sort by timestamp if available
-    fetchedReports.sort((a, b) => {
-      const dateA = new Date(a.createdAt || a.timestamp || 0);
-      const dateB = new Date(b.createdAt || b.timestamp || 0);
-      return dateB - dateA;
-    });
+    fetchedReports.sort((a, b) => new Date(b.createdAt || b.timestamp || 0) - new Date(a.createdAt || a.timestamp || 0));
 
-      fetchedReports.forEach((data) => {
-      // Safe Extractors for old and new structures
-      const execName = data.executiveName || data.userName || data.name || data.userId || "Executive";
-      const supName = data.supervisorName || data.createdBy || "Supervisor";
-      const divInfo = data.divisionId || data.division || data.stateId || "-";
-      const status = data.status || "pending";
-      
-      // Amount extraction
+    fetchedReports.forEach((data) => {
+      const execName = escapeHtml(data.executiveName || data.userName || data.name || data.userId || 'Executive');
+      const supName = escapeHtml(data.supervisorName || data.createdBy || 'Supervisor');
+      const divInfo = escapeHtml(data.divisionId || data.division || data.stateId || '-');
+      const status = (data.status || 'pending').toLowerCase();
       const cashAmt = data.amountChecking?.cashAmount || data.cashAmount || data.amount || 0;
-      
-      // Photos extraction
-      const cashPhoto = data.amountChecking?.cashPhotoUrl || data.cashPhotoUrl || data.cashPhoto || "";
-      const stockPhoto = data.stockChecking?.stockPhotoUrl || data.stockPhotoUrl || data.stockPhoto || "";
-      
+      const cashPhoto = data.amountChecking?.cashPhotoUrl || data.cashPhotoUrl || data.cashPhoto || '';
+      const stockPhoto = data.stockChecking?.stockPhotoUrl || data.stockPhotoUrl || data.stockPhoto || '';
       const createdDate = data.createdAt || data.timestamp;
-      const dateStr = createdDate ? new Date(createdDate).toLocaleString() : "Old Record";
+      const dateStr = createdDate ? new Date(createdDate).toLocaleString() : 'Old Record';
 
-      let photoHtml = "";
-      if (cashPhoto) photoHtml += `<a href="${cashPhoto}" target="_blank"><img src="${cashPhoto}" class="img-preview" title="Cash Photo"></a> `;
-      if (stockPhoto) photoHtml += `<a href="${stockPhoto}" target="_blank"><img src="${stockPhoto}" class="img-preview" title="Stock Photo"></a>`;
-      if (!photoHtml) photoHtml = "-";
+      let photoHtml = '';
+      if (cashPhoto && isValidUrl(cashPhoto)) {
+        photoHtml += `<a href="${escapeHtml(cashPhoto)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(cashPhoto)}" class="img-preview" title="Cash Photo" onerror="this.style.display='none'"></a> `;
+      }
+      if (stockPhoto && isValidUrl(stockPhoto)) {
+        photoHtml += `<a href="${escapeHtml(stockPhoto)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(stockPhoto)}" class="img-preview" title="Stock Photo" onerror="this.style.display='none'"></a>`;
+      }
+      if (!photoHtml) photoHtml = '-';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${dateStr}</td>
+        <td>${escapeHtml(dateStr)}</td>
         <td><b>${execName}</b></td>
         <td>${supName}</td>
         <td>${divInfo}</td>
-        <td><span class="badge bg-${status.toLowerCase()}">${status.toUpperCase()}</span></td>
-        <td><b>₹${cashAmt}</b></td>
+        <td><span class="badge bg-${status}">${status.toUpperCase()}</span></td>
+        <td><b>₹${escapeHtml(cashAmt.toString())}</b></td>
         <td>${photoHtml}</td>
         <td>
           ${getActionButton(data)}
-          <button onclick="downloadPDF('${data.id}')" style="background:#0288d1; width:auto; padding:4px 8px;">PDF</button>
+          <button onclick="downloadPDF('${escapeHtml(data.id)}')" style="background:#0288d1; width:auto; padding:4px 8px;">PDF</button>
         </td>
       `;
       tableBody.appendChild(tr);
     });
   };
 
+  function isValidUrl(string) { try { new URL(string); return true; } catch { return false; } }
+
   function getActionButton(report) {
     if (report.status === 'pending' || !report.status) {
       return `
-        <button onclick="updateReportStatus('${report._collection || 'reports'}', '${report.id}', 'approved')" style="background:#2e7d32; width:auto; padding:4px 8px;">Approve</button>
-        <button onclick="updateReportStatus('${report._collection || 'reports'}', '${report.id}', 'rejected')" style="background:#c62828; width:auto; padding:4px 8px;">Reject</button>
+        <button onclick="updateReportStatus('${escapeHtml(report._collection || 'reports')}', '${escapeHtml(report.id)}', 'approved')" style="background:#2e7d32; width:auto; padding:4px 8px;">Approve</button>
+        <button onclick="updateReportStatus('${escapeHtml(report._collection || 'reports')}', '${escapeHtml(report.id)}', 'rejected')" style="background:#c62828; width:auto; padding:4px 8px;">Reject</button>
       `;
     }
     return '';
@@ -537,98 +527,142 @@
   window.updateReportStatus = async (collName, reportId, newStatus) => {
     try {
       await updateDoc(doc(db, collName, reportId), { status: newStatus });
-      alert(`Report status updated to ${newStatus.toUpperCase()}!`);
+      alert(`✅ Report status updated to ${newStatus.toUpperCase()}!`);
       loadAllFirebaseData();
     } catch (e) {
-      alert("Error updating status: " + e.message);
+      alert('❌ Error updating status: ' + e.message);
     }
   };
 
   async function uploadFile(fileInputId, folder) {
     const file = document.getElementById(fileInputId).files[0];
-    if (!file) return "";
-    const storageRef = ref(storage, `${folder}/${Date.now()}_${file.name}`);
+    if (!file) return '';
+    const validation = validateFile(file);
+    if (!validation.valid) throw new Error(validation.error);
+    const safeName = `${Date.now()}_${file.name}`.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storageRef = ref(storage, `${folder}/${safeName}`);
     await uploadBytes(storageRef, file);
     return await getDownloadURL(storageRef);
   }
 
   window.submitReport = async () => {
     const execSelect = document.getElementById('selectBoxExecutive');
+    const formError = document.getElementById('formError');
+    formError.classList.add('hidden');
+
     if (!execSelect.value) {
-      alert("Please select a Box Executive!");
+      showError('formError', '⚠️ Please select a Box Executive!');
       return;
+    }
+
+    const requiredFields = ['newBox','brokenBox','stockPhoto','stockRemark','onShopBox','chabiBani','chabiChecked','chabiRemark','rasaiCheck','rasaiPhoto','locksCount','stickersCount','pouchCardRingCount','dashboardPhoto','eRasidPhoto','cashPhoto','cashAmount'];
+    for (const field of requiredFields) {
+      const el = document.getElementById(field);
+      if (el.type === 'file') {
+        if (!el.files.length) {
+          showError('formError', `⚠️ Please upload: ${el.previousElementSibling ? el.previousElementSibling.textContent : field}`);
+          return;
+        }
+      } else if (el.type === 'number') {
+        if (!el.value || Number(el.value) < 0) {
+          showError('formError', `⚠️ Please enter valid number for: ${el.previousElementSibling ? el.previousElementSibling.textContent : field}`);
+          return;
+        }
+      } else if (!el.value) {
+        showError('formError', `⚠️ Please fill: ${el.previousElementSibling ? el.previousElementSibling.textContent : field}`);
+        return;
+      }
     }
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
-    btn.innerText = "Saving & Uploading...";
+    btn.innerText = 'Saving & Uploading...';
 
     try {
-      const stockPhotoUrl = await uploadFile('stockPhoto', 'stock_photos');
-      const chabiPhotoUrl = await uploadFile('chabiPhoto', 'chabi_photos');
-      const rasaiPhotoUrl = await uploadFile('rasaiPhoto', 'rasai_photos');
-      const dashboardPhotoUrl = await uploadFile('dashboardPhoto', 'dashboard_photos');
-      const eRasidPhotoUrl = await uploadFile('eRasidPhoto', 'e_rasid_photos');
-      const cashPhotoUrl = await uploadFile('cashPhoto', 'cash_photos');
-
-      const selectedOption = execSelect.options[execSelect.selectedIndex];
-      const executiveName = selectedOption.getAttribute('data-name');
-
       const payload = {
         executiveUid: execSelect.value,
-        executiveName: executiveName,
+        executiveName: execSelect.options[execSelect.selectedIndex].getAttribute('data-name'),
         supervisorUid: currentUserData.uid,
         supervisorName: currentUserData.name || currentUserData.email,
-        regionId: currentUserData.regionId || "west_region",
-        stateId: currentUserData.stateId || "gujarat",
-        divisionId: currentUserData.divisionId || "ahmedabad",
-        status: "pending",
+        regionId: currentUserData.regionId || 'west_region',
+        stateId: currentUserData.stateId || 'gujarat',
+        divisionId: currentUserData.divisionId || 'ahmedabad',
+        status: 'pending',
         createdAt: new Date().toISOString(),
         stockChecking: {
-          newBox: document.getElementById('newBox').value,
-          brokenBox: document.getElementById('brokenBox').value,
-          stockPhotoUrl: stockPhotoUrl,
+          newBox: Number(document.getElementById('newBox').value),
+          brokenBox: Number(document.getElementById('brokenBox').value),
+          stockPhotoUrl: await uploadFile('stockPhoto', 'stock_photos'),
           remark: document.getElementById('stockRemark').value
         },
         chabiyaChecking: {
-          onShopBox: document.getElementById('onShopBox').value,
-          chabiBani: document.getElementById('chabiBani').value,
-          chabiChecked: document.getElementById('chabiChecked').value,
-          chabiGalat: document.getElementById('chabiGalat').value,
-          chabiUpdated: document.getElementById('chabiUpdated').value,
-          chabiPhotoUrl: chabiPhotoUrl,
+          onShopBox: Number(document.getElementById('onShopBox').value),
+          chabiBani: Number(document.getElementById('chabiBani').value),
+          chabiChecked: Number(document.getElementById('chabiChecked').value),
+          chabiGalat: Number(document.getElementById('chabiGalat').value) || 0,
+          chabiUpdated: Number(document.getElementById('chabiUpdated').value) || 0,
+          chabiPhotoUrl: await uploadFile('chabiPhoto', 'chabi_photos') || '',
           remark: document.getElementById('chabiRemark').value
         },
         rasaiKitChecking: {
           rasaiCheck: document.getElementById('rasaiCheck').value,
-          rasaiPhotoUrl: rasaiPhotoUrl
+          rasaiPhotoUrl: await uploadFile('rasaiPhoto', 'rasai_photos')
         },
         inventoryChecking: {
-          locksCount: document.getElementById('locksCount').value,
-          stickersCount: document.getElementById('stickersCount').value,
-          pouchCardRingCount: document.getElementById('pouchCardRingCount').value
+          locksCount: Number(document.getElementById('locksCount').value),
+          stickersCount: Number(document.getElementById('stickersCount').value),
+          pouchCardRingCount: Number(document.getElementById('pouchCardRingCount').value)
         },
         amountChecking: {
-          dashboardPhotoUrl: dashboardPhotoUrl,
-          eRasidPhotoUrl: eRasidPhotoUrl,
-          cashPhotoUrl: cashPhotoUrl,
-          cashAmount: document.getElementById('cashAmount').value
+          dashboardPhotoUrl: await uploadFile('dashboardPhoto', 'dashboard_photos'),
+          eRasidPhotoUrl: await uploadFile('eRasidPhoto', 'e_rasid_photos'),
+          cashPhotoUrl: await uploadFile('cashPhoto', 'cash_photos'),
+          cashAmount: Number(document.getElementById('cashAmount').value)
         }
       };
 
-      await addDoc(collection(db, "reports"), payload);
-      alert("Inspection report successfully saved to Firebase!");
+      await addDoc(collection(db, 'reports'), payload);
+      alert('✅ Inspection report successfully saved to Firebase!');
       document.getElementById('reportFormCard').classList.add('hidden');
+      resetForm();
       loadAllFirebaseData();
     } catch (err) {
-      alert("Submission Error: " + err.message);
+      showError('formError', '❌ ' + err.message);
     } finally {
       btn.disabled = false;
-      btn.innerText = "Submit Report";
+      btn.innerText = 'Submit Report';
     }
   };
 
+  function resetForm() {
+    document.getElementById('newBox').value = '';
+    document.getElementById('brokenBox').value = '';
+    document.getElementById('stockRemark').value = '';
+    document.getElementById('onShopBox').value = '';
+    document.getElementById('chabiBani').value = '';
+    document.getElementById('chabiChecked').value = '';
+    document.getElementById('chabiGalat').value = '';
+    document.getElementById('chabiUpdated').value = '';
+    document.getElementById('chabiRemark').value = '';
+    document.getElementById('rasaiCheck').value = '';
+    document.getElementById('locksCount').value = '';
+    document.getElementById('stickersCount').value = '';
+    document.getElementById('pouchCardRingCount').value = '';
+    document.getElementById('cashAmount').value = '';
+    document.getElementById('stockPhoto').value = '';
+    document.getElementById('chabiPhoto').value = '';
+    document.getElementById('rasaiPhoto').value = '';
+    document.getElementById('dashboardPhoto').value = '';
+    document.getElementById('eRasidPhoto').value = '';
+    document.getElementById('cashPhoto').value = '';
+    goToStep(1);
+  }
+
   window.exportToExcel = () => {
+    if (!fetchedReports.length) {
+      alert('⚠️ No data to export!');
+      return;
+    }
     const excelData = fetchedReports.map(r => ({
       Date: r.createdAt || r.timestamp || 'N/A',
       ExecutiveName: r.executiveName || r.userName || r.name || 'Executive',
@@ -639,46 +673,54 @@
       BrokenBoxStock: r.stockChecking?.brokenBox || r.brokenBox || '-',
       CashAmount: r.amountChecking?.cashAmount || r.cashAmount || r.amount || 0
     }));
-
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Firebase_Reports");
-    XLSX.writeFile(workbook, "Firebase_All_Data_Reports.xlsx");
+    try {
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Firebase_Reports');
+      XLSX.writeFile(workbook, 'Firebase_All_Data_Reports.xlsx');
+      alert('✅ Excel exported successfully!');
+    } catch (e) {
+      alert('❌ Export error: ' + e.message);
+    }
   };
 
   window.downloadPDF = (reportId) => {
-    const { jsPDF } = window.jspdf;
-    const docPdf = new jsPDF();
-    const report = fetchedReports.find(r => r.id === reportId);
-    if (!report) return;
-
-    docPdf.setFontSize(16);
-    docPdf.text("Checking Inspection Report", 20, 20);
-
-    const execName = report.executiveName || report.userName || report.name || "Executive";
-    const supName = report.supervisorName || report.createdBy || "Supervisor";
-    const cashAmt = report.amountChecking?.cashAmount || report.cashAmount || report.amount || 0;
-
-    docPdf.setFontSize(11);
-    docPdf.text(`Date: ${report.createdAt || report.timestamp || 'N/A'}`, 20, 32);
-    docPdf.text(`Box Executive: ${execName}`, 20, 40);
-    docPdf.text(`Supervisor: ${supName}`, 20, 48);
-    docPdf.text(`Division: ${report.divisionId || report.division || 'N/A'}`, 20, 56);
-    docPdf.text(`Status: ${(report.status || 'pending').toUpperCase()}`, 20, 64);
-    docPdf.text(`Cash Amount: Rs. ${cashAmt}`, 20, 72);
-
-    docPdf.save(`Report_${execName}_${reportId}.pdf`);
+    try {
+      const { jsPDF } = window.jspdf;
+      if (!jsPDF) {
+        alert('❌ PDF library not loaded');
+        return;
+      }
+      const docPdf = new jsPDF();
+      const report = fetchedReports.find(r => r.id === reportId);
+      if (!report) {
+        alert('❌ Report not found');
+        return;
+      }
+      docPdf.setFontSize(16);
+      docPdf.text('Checking Inspection Report', 20, 20);
+      const execName = report.executiveName || report.userName || report.name || 'Executive';
+      const supName = report.supervisorName || report.createdBy || 'Supervisor';
+      const cashAmt = report.amountChecking?.cashAmount || report.cashAmount || report.amount || 0;
+      docPdf.setFontSize(11);
+      docPdf.text(`Date: ${report.createdAt || report.timestamp || 'N/A'}`, 20, 32);
+      docPdf.text(`Box Executive: ${execName}`, 20, 40);
+      docPdf.text(`Supervisor: ${supName}`, 20, 48);
+      docPdf.text(`Division: ${report.divisionId || report.division || 'N/A'}`, 20, 56);
+      docPdf.text(`Status: ${(report.status || 'pending').toUpperCase()}`, 20, 64);
+      docPdf.text(`Cash Amount: Rs. ${cashAmt}`, 20, 72);
+      docPdf.save(`Report_${execName}_${reportId}.pdf`);
+    } catch (e) {
+      alert('❌ PDF download error: ' + e.message);
+    }
   };
 
-  window.toggleReportForm = () => {
-    document.getElementById('reportFormCard').classList.toggle('hidden');
-  };
+  window.toggleReportForm = () => document.getElementById('reportFormCard').classList.toggle('hidden');
 
   window.goToStep = (stepNum) => {
-    for (let i = 1; i <= 5; i++) {
-      document.getElementById(`step${i}`).classList.add('hidden');
-    }
+    for (let i = 1; i <= 5; i++) document.getElementById(`step${i}`).classList.add('hidden');
     document.getElementById(`step${stepNum}`).classList.remove('hidden');
+    window.scrollTo(0, 0);
   };
 </script>
 
