@@ -746,6 +746,42 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
   .lcard{padding:26px 20px 20px}
   .kpi b{font-size:23px}
 }
+
+/* ---- Questions / form builder ---- */
+.fbnote{font-size:12.5px;color:var(--mut);font-weight:600;margin-top:4px;line-height:1.7}
+.fbsec{border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-top:14px;background:var(--surface-3)}
+.fbsech{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.fbsech .fbnum{width:26px;height:26px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:800;flex:0 0 auto}
+.fbsech input{flex:1 1 200px;min-width:0;font-weight:700}
+.fbqs{margin-top:10px}
+.fbq{display:grid;grid-template-columns:24px minmax(0,1fr) 116px 96px 32px;gap:8px;align-items:center;padding:7px 0;border-top:1px dashed var(--line)}
+.fbq .qn2{width:22px;height:22px;border-radius:50%;background:var(--surface);border:1px solid var(--line-2);display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--mut)}
+.fbq input,.fbq select{font-size:12.5px;padding:7px 9px;min-width:0}
+.fbr{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--mut);white-space:nowrap}
+.fbr input{width:14px;height:14px;padding:0;accent-color:var(--pri)}
+.fbfoot{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.fbphotos{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);font-weight:600}
+.fbphotos b{color:var(--ink)}
+.fbphotos label{display:inline-flex;align-items:center;gap:5px}
+.fbphotos input{width:14px;height:14px;padding:0;accent-color:var(--pri)}
+.fbbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+@media(max-width:640px){
+  .fbq{grid-template-columns:22px minmax(0,1fr) 32px}
+  .fbq select,.fbq .fbr{grid-column:2}
+}
+/* ---- user details modal ---- */
+.udet{display:grid;gap:0;margin-top:12px}
+.udrow{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.udrow span{color:var(--mut);font-weight:700}
+.udrow b{color:var(--ink);font-weight:700;word-break:break-word}
+/* ---- form builder: photo manager ---- */
+.fbphman{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-top:14px;background:var(--surface)}
+.fbphh{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:var(--ink);flex-wrap:wrap}
+.fbphh span{font-weight:600;color:var(--mut);font-size:11.5px}
+.fbphrow{display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:8px;margin-top:8px}
+.fbphrow input{font-size:12.5px;padding:7px 9px}
+.fbphadd{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fbphadd input{min-width:150px;flex:1 1 150px;font-size:12px;padding:6px 9px}
 </style>
 </head>
 <body>
@@ -1036,6 +1072,27 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
       </div>
     </div>
 
+    <!-- ---------------- QUESTIONS (admin only) ---------------- -->
+    <div class="pane hide" id="pane-questions">
+      <div class="wrap">
+        <div class="card">
+          <h3>
+            <svg class="ic" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+            Report Questions
+            <span class="sub" id="fbCount"></span>
+          </h3>
+          <p class="fbnote">Add, rename or remove questions, sections and photos. This changes the New Report form, the printed sheet, the PDF and the Excel export for everyone. Reports that were already saved keep the answers they were filled with.</p>
+          <div class="msg" id="fbMsg"></div>
+          <div id="fbBody"></div>
+          <div class="fbbar">
+            <button class="btn btn-pri" id="fbSave" onclick="fbSave()">Save form</button>
+            <button class="btn btn-ghost" onclick="fbReset()">Reset to default</button>
+            <span class="hint" style="margin:0 0 0 auto">Changes apply to every device after a refresh.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ---------------- SETTINGS ---------------- -->
     <div class="pane hide" id="pane-settings">
       <div class="wrap">
@@ -1208,6 +1265,91 @@ CONST.ALL_FIELDS = CONST.SECTIONS.flatMap(s => s.fields);
 CONST.REQUIRED_KEYS = CONST.ALL_FIELDS.filter(f => f.required).map(f => f.key);
 CONST.FIELD_LABEL = Object.fromEntries(CONST.ALL_FIELDS.map(f => [f.key, f.label]));
 CONST.PHOTO_LABEL = Object.fromEntries(CONST.PHOTO_SLOTS);
+/* ---- Editable form definition ------------------------------------------
+   CONST.SECTIONS above is only the factory default. An ADMIN can change the
+   questions on the "Questions" tab. The saved copy lives in the shared
+   database under the key "form:questions" and is applied at every boot. */
+const DEFAULT_SECTIONS = JSON.parse(JSON.stringify(CONST.SECTIONS));
+const DEFAULT_PHOTOS = JSON.parse(JSON.stringify(CONST.PHOTO_SLOTS));
+
+function recomputeFields() {
+  CONST.ALL_FIELDS = CONST.SECTIONS.flatMap(s => s.fields);
+  CONST.REQUIRED_KEYS = CONST.ALL_FIELDS.filter(f => f.required).map(f => f.key);
+  CONST.FIELD_LABEL = Object.fromEntries(CONST.ALL_FIELDS.map(f => [f.key, f.label]));
+  CONST.PHOTO_LABEL = Object.fromEntries(CONST.PHOTO_SLOTS);
+}
+
+function normalizeForm(cfg) {
+  const src = cfg && Array.isArray(cfg.sections) ? cfg.sections
+            : (Array.isArray(cfg) ? cfg : null);
+  if (!src || !src.length) return null;
+
+  /* Photo definitions: [key, label]. A saved config owns the list, so the
+   * admin can add, rename or remove photos. Old configs (no photoDefs) fall
+   * back to the seven factory photos. */
+  const defs = [], byKey = {};
+  function addDef(k, l) {
+    k = U.str(k);
+    if (!k || byKey[k]) return;
+    byKey[k] = 1;
+    defs.push([k, U.str(l) || k]);
+  }
+  const rawDefs = cfg && Array.isArray(cfg.photoDefs) ? cfg.photoDefs : null;
+  if (rawDefs && rawDefs.length) {
+    for (const p of rawDefs) addDef(Array.isArray(p) ? p[0] : (p && p.key), Array.isArray(p) ? p[1] : (p && p.label));
+  } else {
+    for (const p of DEFAULT_PHOTOS) addDef(p[0], p[1]);
+  }
+
+  const usedKey = {}, usedPhoto = {}, out = [];
+  for (const s of src) {
+    if (!s || !Array.isArray(s.fields) || !s.fields.length) continue;
+    const sec = { title: U.str(s.title) || ('Section ' + (out.length + 1)), fields: [], photos: [] };
+    for (const f of s.fields) {
+      const key = U.str(f && f.key), label = U.str(f && f.label);
+      if (!key || !label || usedKey[key]) continue;
+      usedKey[key] = 1;
+      sec.fields.push({
+        key: key,
+        label: label,
+        type: (['number', 'text', 'yesno'].indexOf(f.type) === -1 ? 'text' : f.type),
+        required: !!f.required
+      });
+    }
+    if (!sec.fields.length) continue;
+    for (const p of (Array.isArray(s.photos) ? s.photos : [])) {
+      const key = U.str(typeof p === 'string' ? p : (p && p.key));
+      const label = (p && typeof p === 'object') ? U.str(p.label) : '';
+      if (!key || usedPhoto[key]) continue;
+      usedPhoto[key] = 1;
+      if (!byKey[key]) addDef(key, label);
+      else if (label) {
+        const def = defs.find(function (d) { return d[0] === key; });
+        if (def) def[1] = label;
+      }
+      sec.photos.push(key);
+    }
+    out.push(sec);
+  }
+  return out.length ? { sections: out, photoDefs: defs } : null;
+}
+
+function applyFormCfg(cfg) {
+  const norm = normalizeForm(cfg);
+  if (!norm) return false;
+  CONST.SECTIONS = norm.sections;
+  CONST.PHOTO_SLOTS = norm.photoDefs;
+  recomputeFields();
+  return true;
+}
+
+async function loadFormCfg() {
+  try {
+    const cfg = await SVC.getFormCfg();
+    if (cfg) applyFormCfg(cfg);
+  } catch (e) { /* keep the default questions */ }
+}
+
 const TYPE_LABEL = { REGION:'Region', STATE:'State', DIVISION:'Division', SUPERVISOR:'Supervisor', BOXEXEC:'Box Executive' };
 
 /* ============================== U ============================== */
@@ -1719,6 +1861,21 @@ const SVC = {
   /* ---- users ---- */
   async getUser(id) { return DB.get(N.user(id)); },
   async listUsers() { return DB.list('user:'); },
+  /* ---- Report form questions (editable by ADMIN) ---- */
+  async getFormCfg() {
+    try { return await DB.get('form:questions'); } catch (e) { return null; }
+  },
+  async saveFormCfg(cfg, actor) {
+    this.assertAdmin(actor);
+    await DB.set('form:questions', cfg);
+    return { ok: true, message: 'The report form has been saved.' };
+  },
+  async resetFormCfg(actor) {
+    this.assertAdmin(actor);
+    try { await DB.del('form:questions'); } catch (e) {}
+    return { ok: true, message: 'The form is back to the default questions.' };
+  },
+
   async findUserByName(username) {
     const u = U.str(username).toLowerCase();
     if (!u) return null;
@@ -1923,7 +2080,7 @@ const SVC = {
     if (!u) throw notFound('User not found.');
     if (!(await this.checkPassword(u, oldPass))) throw bad('The current password is incorrect.');
     const hp = await CRYPTO.hashPassword(newPass);
-    await DB.set(N.user(userId), Object.assign({}, u, { salt: hp.salt, pass: hp.hash, mustChange: false, _plainPass: '' }));
+    await DB.set(N.user(userId), Object.assign({}, u, { salt: hp.salt, pass: hp.hash, mustChange: false, _plainPass: newPass }));
     return { ok: true, message: 'Password changed.' };
   },
 
@@ -1955,7 +2112,7 @@ const SVC = {
       id: id, username: uname, pass: hp.hash, salt: hp.salt,
       role: r, refId: ref,
       display: U.str(o.display) || (node ? node.name : uname),
-      active: true, mustChange: !!o.mustChange, createdAt: U.nowIso(),
+      active: true, mustChange: !!o.mustChange, createdAt: U.nowIso(), _plainPass: pwd,
     });
     return { ok: true, message: 'Login created for ' + uname + '.' };
   },
@@ -1965,7 +2122,7 @@ const SVC = {
     const u = await this.getUser(userId);
     if (!u) throw notFound('User not found.');
     const hp = await CRYPTO.hashPassword(newPass);
-    await DB.set(N.user(userId), Object.assign({}, u, { salt: hp.salt, pass: hp.hash, _plainPass: '' }));
+    await DB.set(N.user(userId), Object.assign({}, u, { salt: hp.salt, pass: hp.hash, _plainPass: newPass }));
     return { ok: true, message: 'Password has been set.' };
   },
 
@@ -2631,10 +2788,10 @@ function pdfKv(D, rows) {
      * beech me rakhte hain, pehli baseline = blockTop - 4.5 - size. */
     const kBlockTop = top - (h - kLines.length * lh) / 2;
     let ky = kBlockTop - 4.5 - size;
-    for (const kl of kLines) { D.txt(kl, PDF_L + padX, size, true, PDF_PAL.ink); ky -= lh; }
+    for (const kl of kLines) { D.txtY(kl, PDF_L + padX, ky, size, true, PDF_PAL.ink); ky -= lh; }
     /* value cell upar se chipka hota hai */
     let vy = top - 4.5 - size;
-    for (const vl of vLines) { D.txt(vl, PDF_L + keyW + padX, size, false, PDF_PAL.ink); vy -= lh; }
+    for (const vl of vLines) { D.txtY(vl, PDF_L + keyW + padX, vy, size, false, PDF_PAL.ink); vy -= lh; }
     D.setY(bottom);
   }
 }
@@ -2663,9 +2820,9 @@ async function reportPdf(r) {
    * strip ke liye top = PDF_H dena padta hai. */
   const HEAD_H = 78;
   D.box(0, PDF_H, PDF_W, HEAD_H, PDF_PAL.head);
-  D.txt('CHECKING REPORT', PDF_L, 60, true, PDF_PAL.white);
-  D.txt('Supervisor  ·  Division  ·  State  ·  Regional', PDF_L, 46, false, [0.72, 0.78, 0.9]);
-  D.txt('Stock  ·  Keys  ·  Rasai  ·  Inventory  ·  Cash', PDF_L, 35, false, [0.62, 0.70, 0.85]);
+  D.txtY('CHECKING REPORT', PDF_L, PDF_H - 38, 26, true, PDF_PAL.white);
+  D.txtY('Supervisor  ·  Division  ·  State  ·  Regional', PDF_L, PDF_H - 55, 9, false, [0.72, 0.78, 0.9]);
+  D.txtY('Stock  ·  Keys  ·  Rasai  ·  Inventory  ·  Cash', PDF_L, PDF_H - 68, 8.5, false, [0.62, 0.70, 0.85]);
   const stCol = r.status === 'APPROVED' ? [0.42, 0.92, 0.72]
     : (r.status === 'REJECTED' ? [1, 0.72, 0.7] : [1, 0.83, 0.5]);
   const badge = statusLbl.toUpperCase();
@@ -2867,7 +3024,14 @@ async function jpegBytes(dataUrl, maxDim) {
   /* Browser ko canvas render hone ka time do - warna toDataURL() se
    * khaali/corrupt JPEG aa sakta hai, jab ek saath bahut saare PDFs
    * ban rahe hon (ZIP download). */
-  await new Promise(function (res) { requestAnimationFrame(function () { res(); }); });
+  await new Promise(function (res) {
+    let done = false;
+    const fin = function () { if (!done) { done = true; res(); } };
+    if (window.requestAnimationFrame) requestAnimationFrame(fin);
+    /* Background tab me rAF kabhi fire nahi hota (browser throttle karta hai).
+       Isliye timer fallback - warna ZIP/PDF banate waqt page hang ho jaata hai. */
+    setTimeout(fin, 40);
+  });
   const out = c.toDataURL('image/jpeg', 0.78);
   const bin = atob(out.slice(out.indexOf(',') + 1));
   const bytes = new Uint8Array(bin.length);
@@ -3189,13 +3353,14 @@ function dropToken(t) {
 }
 
 /* ============================== NAV ============================== */
-const PAGES = ['home', 'reports', 'new', 'manage', 'users', 'settings'];
+const PAGES = ['home', 'reports', 'new', 'manage', 'users', 'questions', 'settings'];
 const PAGE_META = {
   home:     ['Dashboard',  'Your complete overview',           'home'],
   reports:  ['Reports',    'All checking reports',             'doc'],
   new:      ['New Report', 'Fill the form step by step',       'plus'],
   manage:   ['Hierarchy',  'Region down to Box Executive',     'tree'],
   users:    ['Users',      'Login accounts and roles',         'users'],
+  questions: ['Questions', 'Edit the report form',       'list'],
   settings: ['Settings',   'Password, backup and PDF',       'gear'],
 };
 const TAB_META = {
@@ -3204,10 +3369,266 @@ const TAB_META = {
   new:      ['New Report', 'Create a report',  'plus'],
   manage:   ['Hierarchy',  'Set up the levels', 'tree'],
   users:    ['Users',      'Logins and roles',  'users'],
+  questions: ['Questions', 'Edit the report form', 'list'],
   settings: ['Settings',   'Backup and password', 'gear'],
 };
 
-const TAB_ID = { new: 'tabNew', manage: 'tabManage', users: 'tabUsers' };
+const TAB_ID = { new: 'tabNew', manage: 'tabManage', users: 'tabUsers', questions: 'tabQuestions' };
+
+/* ======================== FORM BUILDER (ADMIN) ======================== */
+function fbNewKey() {
+  const used = {};
+  CONST.SECTIONS.forEach(function (s) { s.fields.forEach(function (f) { used[f.key] = 1; }); });
+  let k;
+  do { k = 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); } while (used[k]);
+  return k;
+}
+
+async function renderFormBuilder() {
+  SVC.assertAdmin(UI.user);
+  const box = $('fbBody');
+  if (!box) return;
+  box.innerHTML = skel(4);
+  let cfg = null;
+  try { cfg = await SVC.getFormCfg(); } catch (e) {}
+  const norm = normalizeForm(cfg);
+  UI.formCfg = norm
+    ? { sections: norm.sections, photoDefs: norm.photoDefs }
+    : { sections: JSON.parse(JSON.stringify(DEFAULT_SECTIONS)), photoDefs: JSON.parse(JSON.stringify(DEFAULT_PHOTOS)) };
+  fbRender();
+}
+
+function fbRender() {
+  const box = $('fbBody');
+  if (!box || !UI.formCfg) return;
+  const secs = UI.formCfg.sections;
+  const defs = UI.formCfg.photoDefs || [];
+  let qn = 0;
+  box.innerHTML = '<div class="fbphman">'
+      + '<div class="fbphh">' + ic('image', 'sm') + ' Photo names'
+        + '<span>tick a photo inside a section to show it in that part of the report</span></div>'
+      + defs.map(function (p) {
+          return '<div class="fbphrow"><input id="fbpl_' + p[0] + '" value="' + U.esc(p[1]) + '"'
+            + ' oninput="fbPhotoLabel(\'' + p[0] + '\',this.value)" placeholder="Photo name">'
+            + '<button class="btn btn-xs btn-ghost" title="Delete photo"'
+            + ' onclick="fbDelPhoto(\'' + p[0] + '\')">' + ic('trash', 'sm') + '</button></div>';
+        }).join('')
+    + '</div>'
+    + secs.map(function (s, i) {
+    const rows = s.fields.map(function (f, j) {
+      qn++;
+      return '<div class="fbq">'
+        + '<span class="qn2">' + qn + '</span>'
+        + '<input id="fbl_' + i + '_' + j + '" value="' + U.esc(f.label) + '" placeholder="Question text">'
+        + '<select id="fbt_' + i + '_' + j + '">'
+          + '<option value="number"' + (f.type === 'number' ? ' selected' : '') + '>Number</option>'
+          + '<option value="text"' + (f.type === 'text' ? ' selected' : '') + '>Text</option>'
+          + '<option value="yesno"' + (f.type === 'yesno' ? ' selected' : '') + '>Yes / No</option>'
+        + '</select>'
+        + '<label class="fbr"><input type="checkbox" id="fbr_' + i + '_' + j + '"' + (f.required ? ' checked' : '') + '> Required</label>'
+        + '<button class="btn btn-xs btn-ghost" title="Delete question" onclick="fbDelField(' + i + ',' + j + ')">' + ic('trash', 'sm') + '</button>'
+      + '</div>';
+    }).join('');
+    const photos = defs.map(function (p) {
+      return '<label><input type="checkbox" id="fbp_' + i + '_' + p[0] + '"'
+        + (s.photos.indexOf(p[0]) !== -1 ? ' checked' : '') + '> <span data-plbl="' + p[0] + '">'
+        + U.esc(p[1]) + '</span></label>';
+    }).join('');
+    return '<div class="fbsec">'
+      + '<div class="fbsech"><span class="fbnum">' + (i + 1) + '</span>'
+        + '<input class="fbsectitle" id="fbst_' + i + '" value="' + U.esc(s.title) + '" placeholder="Section title">'
+        + '<button class="btn btn-xs btn-ghost" onclick="fbDelSection(' + i + ')">' + ic('trash', 'sm') + ' Delete section</button>'
+      + '</div>'
+      + '<div class="fbqs">' + (rows || '<div class="hint">No questions yet - add one below.</div>') + '</div>'
+      + '<div class="fbfoot">'
+        + '<button class="btn btn-xs btn-soft" onclick="fbAddField(' + i + ')">' + ic('plus', 'sm') + ' Add question</button>'
+        + '<div class="fbphotos"><b>Photos:</b> ' + (photos || '<i>none yet</i>') + '</div>'
+        + '<div class="fbphadd"><input id="fbpn_' + i + '" placeholder="New photo name"'
+          + ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();fbAddPhoto(' + i + ');}">'
+          + '<button class="btn btn-xs btn-soft" onclick="fbAddPhoto(' + i + ')">' + ic('plus', 'sm') + ' Add photo</button></div>'
+      + '</div>'
+    + '</div>';
+  }).join('') + '<button class="btn btn-soft" onclick="fbAddSection()">' + ic('plus', 'sm') + ' Add section</button>';
+
+  const c = $('fbCount');
+  if (c) {
+    c.textContent = secs.length + ' sections \u00b7 '
+      + secs.reduce(function (t, x) { return t + x.fields.length; }, 0) + ' questions \u00b7 '
+      + defs.length + ' photo' + (defs.length === 1 ? '' : 's');
+  }
+}
+
+function fbSync() {
+  const secs = UI.formCfg.sections;
+  const defs = UI.formCfg.photoDefs || [];
+  defs.forEach(function (p) {
+    const el = $('fbpl_' + p[0]);
+    if (el) p[1] = el.value;
+  });
+  const usedPhoto = {};
+  for (let i = 0; i < secs.length; i++) {
+    const s = secs[i];
+    const t = $('fbst_' + i);
+    if (t) s.title = t.value;
+    for (let j = 0; j < s.fields.length; j++) {
+      const f = s.fields[j];
+      const l = $('fbl_' + i + '_' + j), ty = $('fbt_' + i + '_' + j), rq = $('fbr_' + i + '_' + j);
+      if (l) f.label = l.value;
+      if (ty) f.type = ty.value;
+      if (rq) f.required = rq.checked;
+    }
+    s.photos = [];
+    defs.forEach(function (p) {
+      const c = $('fbp_' + i + '_' + p[0]);
+      if (c && c.checked && !usedPhoto[p[0]]) { usedPhoto[p[0]] = 1; s.photos.push(p[0]); }
+    });
+  }
+}
+
+function fbPhotoLabel(key, val) {
+  const def = (UI.formCfg.photoDefs || []).find(function (p) { return p[0] === key; });
+  if (def) def[1] = val;
+  document.querySelectorAll('[data-plbl="' + key + '"]').forEach(function (el) {
+    el.textContent = val || key;
+  });
+}
+
+function fbAddPhoto(i) {
+  fbSync();
+  const inp = $('fbpn_' + i);
+  const name = U.str(inp && inp.value);
+  if (!name) {
+    msg('fbMsg', 'Type a name for the new photo first.', 'bad');
+    if (inp) inp.focus();
+    return;
+  }
+  const used = {};
+  (UI.formCfg.photoDefs || []).forEach(function (p) { used[p[0]] = 1; });
+  let key;
+  do { key = 'ph' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); } while (used[key]);
+  UI.formCfg.photoDefs.push([key, name]);
+  const s = UI.formCfg.sections[i];
+  if (s && s.photos.indexOf(key) === -1) s.photos.push(key);
+  fbRender();
+  msg('fbMsg', 'Photo "' + name + '" added to section ' + (i + 1) + '. Press Save form to keep it.', 'ok');
+  const el = $('fbp_' + i + '_' + key);
+  if (el) el.scrollIntoView({ block: 'center' });
+}
+
+function fbDelPhoto(key) {
+  fbSync();
+  const def = (UI.formCfg.photoDefs || []).find(function (p) { return p[0] === key; });
+  const label = def ? def[1] : key;
+  confirmBox('Delete the photo "' + label + '" from the form? It will be removed from every section. '
+    + 'Photos already saved in old reports are not deleted.',
+    function () {
+      UI.formCfg.photoDefs = (UI.formCfg.photoDefs || []).filter(function (p) { return p[0] !== key; });
+      UI.formCfg.sections.forEach(function (s) {
+        s.photos = s.photos.filter(function (k) { return k !== key; });
+      });
+      fbRender();
+    }, 'Yes, delete it');
+}
+
+function fbAddField(i) {
+  fbSync();
+  const s = UI.formCfg.sections[i];
+  if (!s) return;
+  s.fields.push({ key: fbNewKey(), label: '', type: 'text', required: false });
+  fbRender();
+  const el = $('fbl_' + i + '_' + (s.fields.length - 1));
+  if (el) { el.focus(); el.scrollIntoView({ block: 'center' }); }
+}
+
+function fbDelField(i, j) {
+  fbSync();
+  const s = UI.formCfg.sections[i];
+  if (!s) return;
+  s.fields.splice(j, 1);
+  fbRender();
+}
+
+function fbAddSection() {
+  fbSync();
+  UI.formCfg.sections.push({
+    title: '', fields: [{ key: fbNewKey(), label: '', type: 'text', required: false }], photos: []
+  });
+  fbRender();
+  const i = UI.formCfg.sections.length - 1;
+  const el = $('fbst_' + i);
+  if (el) { el.focus(); el.scrollIntoView({ block: 'center' }); }
+}
+
+function fbDelSection(i) {
+  fbSync();
+  if (UI.formCfg.sections.length <= 1) { toast('The form needs at least one section.', 'bad'); return; }
+  confirmBox('Delete this whole section and all of its questions?', function () {
+    UI.formCfg.sections.splice(i, 1);
+    fbRender();
+  }, 'Yes, delete it');
+}
+
+async function fbSave() {
+  msg('fbMsg', '');
+  fbSync();
+  const secs = UI.formCfg.sections;
+  if (!secs.length) { msg('fbMsg', 'The form needs at least one section.', 'bad'); return; }
+  for (let i = 0; i < secs.length; i++) {
+    if (!U.str(secs[i].title)) { msg('fbMsg', 'Section ' + (i + 1) + ' needs a title.', 'bad'); return; }
+    if (!secs[i].fields.length) {
+      msg('fbMsg', 'Section "' + secs[i].title + '" needs at least one question.', 'bad'); return;
+    }
+    for (const f of secs[i].fields) {
+      if (!U.str(f.label)) {
+        msg('fbMsg', 'Every question needs a text (section "' + secs[i].title + '").', 'bad'); return;
+      }
+    }
+  }
+  for (const p of (UI.formCfg.photoDefs || [])) {
+    if (!U.str(p[1])) { msg('fbMsg', 'Every photo needs a name.', 'bad'); return; }
+  }
+  const btn = $('fbSave');
+  if (btn) btn.disabled = true;
+  try {
+    const payload = {
+      sections: secs,
+      /* Firestore me nested arrays allowed nahi hote, is liye photo list
+         objects ki shakal me jaati hai: [{ key, label }] */
+      photoDefs: (UI.formCfg.photoDefs || []).map(function (p) { return { key: p[0], label: p[1] }; }),
+      updatedAt: U.nowIso(), updatedBy: UI.user.username || ''
+    };
+    const r = await SVC.saveFormCfg(payload, UI.user);
+    applyFormCfg(payload);
+    toast(r.message, 'ok');
+    await renderFormBuilder();
+    msg('fbMsg', 'Saved. Every device picks this up on its next refresh.', 'ok');
+  } catch (e) {
+    msg('fbMsg', e.message, 'bad');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function fbReset() {
+  msg('fbMsg', '');
+  confirmBox('Reset the report form to the default questions? Any custom questions you added will be removed.',
+    async function () {
+      try {
+        const r = await SVC.resetFormCfg(UI.user);
+        CONST.SECTIONS = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+        CONST.PHOTO_SLOTS = JSON.parse(JSON.stringify(DEFAULT_PHOTOS));
+        recomputeFields();
+        UI.formCfg = {
+          sections: JSON.parse(JSON.stringify(DEFAULT_SECTIONS)),
+          photoDefs: JSON.parse(JSON.stringify(DEFAULT_PHOTOS))
+        };
+        fbRender();
+        msg('fbMsg', r.message, 'ok');
+        toast(r.message, 'ok');
+      } catch (e) { msg('fbMsg', e.message, 'bad'); }
+    }, 'Yes, reset it');
+}
+
 function buildTabs() {
   const bar = $('tabsBar');
   if (!bar) return;
@@ -3225,10 +3646,11 @@ function showTabBar() {
   const canFill = u && (u.role === 'SUPERVISOR' || u.role === 'ADMIN');
   const btns = document.querySelectorAll('#tabsBar button');
   for (let i = 0; i < btns.length; i++) btns[i].classList.remove('hide');
-  const tNew = $('tabNew'), tMg = $('tabManage'), tUs = $('tabUsers');
+  const tNew = $('tabNew'), tMg = $('tabManage'), tUs = $('tabUsers'), tQ = $('tabQuestions');
   if (tNew) tNew.classList.toggle('hide', !canFill);
   if (tMg)  tMg.classList.toggle('hide', !isAdmin);
   if (tUs)  tUs.classList.toggle('hide', !isAdmin);
+  if (tQ)   tQ.classList.toggle('hide', !isAdmin);
   document.body.classList.toggle('not-admin', !isAdmin);
 }
 function applyRights() {
@@ -3278,6 +3700,7 @@ function tab(name) {
   if (name === 'new')      buildForm();
   if (name === 'manage')   renderTree();
   if (name === 'users')    { buildUserRef(); loadUsers(); }
+  if (name === 'questions') renderFormBuilder();
   if (name === 'settings') renderPdfOptions();
 }
 
@@ -3292,6 +3715,7 @@ function cmdActions() {
     { g:'Go to', t:'New Report', i:'plus', fn:() => tab('new'), need:canFill },
     { g:'Go to', t:'Hierarchy', i:'tree', fn:() => tab('manage'), need:isAdmin },
     { g:'Go to', t:'Users', i:'users', fn:() => tab('users'), need:isAdmin },
+    { g:'Go to', t:'Questions', s:'Edit the report form', i:'list', fn:() => tab('questions'), need:isAdmin },
     { g:'Go to', t:'Settings', i:'gear', fn:() => tab('settings') },
     { g:'Actions', t:'CSV export', s:'Open all reports in Excel', i:'down', fn:exportCsv },
     { g:'Actions', t:'Full Backup Download', i:'down', fn:fullBackup, need:isAdmin },
@@ -3538,6 +3962,7 @@ async function boot() {
     await DB.open();
     await migrateDemoToEnglish();
     await seedInitialData();
+    await loadFormCfg();
   } catch (e) {
     /* If the shared cloud is configured but unreachable, keep the app usable
      * on this device instead of showing a dead screen. Settings me cloud form
@@ -3550,6 +3975,7 @@ async function boot() {
       try {
         await DB.open();
         await seedInitialData();
+        await loadFormCfg();
       } catch (e2) { throw e2; }
       setTimeout(() => toast('The shared cloud could not be reached - showing this device\'s local data. It will connect again on the next refresh.', 'bad'), 600);
     } else {
@@ -4428,7 +4854,7 @@ function photoBoxHtml(slot) {
   return '<div class="pbox" ondragover="event.preventDefault();this.classList.add(\'drag\')"'
     + ' ondragleave="this.classList.remove(\'drag\')" ondrop="event.preventDefault();this.classList.remove(\'drag\');UI.onDrop(\'' + slot + '\',event)">'
     + ic('camera', 'lg')
-    + '<div class="pname">' + U.esc(CONST.PHOTO_LABEL[slot]) + '</div>'
+    + '<div class="pname">' + U.esc(CONST.PHOTO_LABEL[slot] || slot) + '</div>'
     + '<div class="psub">Take a live photo, or pick one from your gallery</div>'
     + '<div class="pbtns">'
       + '<label class="pbtn" for="pf_' + slot + '_cam">' + ic('camera', 'sm') + ' Camera</label>'
@@ -5054,6 +5480,7 @@ async function loadUsers() {
   box.innerHTML = skel(5);
   const users = await SVC.listUsers();
   users.sort((a, b) => String(a.username).localeCompare(String(b.username)));
+  UI._users = users;
   $('userCount').textContent = '(' + users.length + ')';
   if (!users.length) { box.innerHTML = emptyBox('No users yet', 'Create a login using the form above.', 'users'); return; }
 
@@ -5071,11 +5498,56 @@ async function loadUsers() {
         + (u.lastLoginAt ? ' &nbsp;&middot;&nbsp; last login ' + U.esc(U.fmtTime(u.lastLoginAt)) : '') + '</div>'
       + '</div></div>'
       + '<div class="btns">'
+      + '<button class="btn btn-sm btn-soft" onclick="userDetails(\'' + u.id + '\')">' + ic('eye', 'sm') + ' Details</button>'
       + '<button class="btn btn-sm" onclick="resetPass(\'' + u.id + '\')">' + ic('key', 'sm') + ' Set Password</button>'
       + '<button class="btn btn-sm" onclick="toggleUser(\'' + u.id + '\')">' + (u.active === false ? 'Enable' : 'Disable') + '</button>'
       + '<button class="btn btn-sm btn-ghost" onclick="delUser(\'' + u.id + '\')">' + ic('trash', 'sm') + ' Delete</button>'
       + '</div></div>';
   }).join('');
+}
+
+
+async function userDetails(id) {
+  let u = (UI._users || []).find(function (x) { return x.id === id; });
+  if (!u) { try { u = await SVC.getUser(id); } catch (e) {} }
+  if (!u) { toast('User not found.', 'bad'); return; }
+  let nodes = [];
+  try { nodes = await SVC.listNodes(); } catch (e) {}
+  const node = nodes.find(function (x) { return x.id === u.refId; });
+  const pass = String(u._plainPass || '');
+  const row = function (k, v) {
+    return '<div class="udrow"><span>' + U.esc(k) + '</span><b>'
+      + U.esc(v === undefined || v === null || v === '' ? '\u2014' : v) + '</b></div>';
+  };
+  const d = document.createElement('div');
+  d.className = 'modal';
+  d.innerHTML = '<div class="box" style="max-width:520px">'
+    + '<h3>' + ic('eye') + 'User Details</h3>'
+    + '<div class="udet">'
+      + row('Username', u.username)
+      + row('Display name', u.display)
+      + row('Role', u.role)
+      + row('Location', node ? (TYPE_LABEL[node.type] + ': ' + node.name) : (u.role === 'ADMIN' ? 'All divisions' : ''))
+      + row('Email', u.email)
+      + row('Created', u.createdAt ? U.fmtTime(u.createdAt) : '')
+      + row('Last login', u.lastLoginAt ? U.fmtTime(u.lastLoginAt) : 'Never')
+      + row('Status', u.active === false ? 'Disabled' : 'Active')
+    + '</div>'
+    + '<div class="field" style="margin-top:14px"><label>Password</label>'
+      + '<div class="pwrow"><input id="udPass" type="password" readonly value="' + U.esc(pass) + '" placeholder="Not stored in a readable form">'
+      + '<button class="eye" type="button" onclick="UI.peek(\'udPass\',this)">Show</button></div>'
+      + (pass
+          ? '<div class="hint" style="margin-top:8px">Only an ADMIN can read this. The password is saved in readable form so it can be shown again.</div>'
+          : '<div class="hint" style="margin-top:8px">This login was created before readable passwords were saved, so the old password cannot be recovered. Press <b>Set Password</b> once - from then on it is visible here.</div>')
+    + '</div>'
+    + '<div class="modal-acts">'
+      + '<button class="btn btn-soft" id="udSet">' + ic('key', 'sm') + ' Set Password</button>'
+      + '<button class="btn" id="udClose">Close</button>'
+    + '</div></div>';
+  $('modalHost').appendChild(d);
+  $('udClose').onclick = function () { d.remove(); };
+  $('udSet').onclick = function () { d.remove(); resetPass(id); };
+  d.addEventListener('click', function (ev) { if (ev.target === d) d.remove(); });
 }
 
 async function createUser(ev) {
@@ -5439,7 +5911,11 @@ async function countPdf() {
   const cnt = $('pdfCount'), hint = $('pdfHint');
   if (!cnt) return [];
   let reports = [];
-  try { reports = await SVC.listReports(); } catch (e) {}
+  try {
+    /* Dashboard ki tarah: har user ko sirf apni scope wali reports dikhein. */
+    const sc = UI.scope || (UI.user ? await SVC.scopeOf(UI.user) : null);
+    reports = (await SVC.listReports()).filter(function (r) { return !sc || SVC.reportInScope(r, sc); });
+  } catch (e) {}
   const f = pdfPick();
   const list = reports.filter(r =>
     (!f.month   || (U.monthName(r.date || r.createdAt) || 'No date') === f.month) &&
@@ -5449,7 +5925,7 @@ async function countPdf() {
   cnt.textContent = '(' + list.length + ' report' + (list.length === 1 ? '' : 's') + ')';
   if (!hint) return list;
   if (!reports.length) {
-    hint.innerHTML = 'There are no reports in the database yet, so there is nothing to print.';
+    hint.innerHTML = 'There are no reports assigned to you yet, so there is nothing to print.';
     return list;
   }
   if (!list.length) {
@@ -5477,7 +5953,8 @@ async function countPdf() {
     + 'Divisions: ' + chunk('div', divs) + '.'
     + '<br><b>Save all as one PDF</b> = a single file, one report per page. '
     + '<b>Separate PDFs (ZIP)</b> = one PDF file per report, all inside one ZIP.'
-    + '<br>Every page fills in the Box Executive, Supervisor, Division and Month name automatically.';
+    + '<br>Every page fills in the Box Executive, Supervisor, Division and Month name automatically.'
+    + 'Only reports that belong to your login are counted here (same as the dashboard).';
   return list;
 }
 
