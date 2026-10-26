@@ -77,7 +77,7 @@ html{-webkit-text-size-adjust:100%}
 body{
   font-family:var(--font);background:var(--bg);color:var(--ink);
   font-size:15px;line-height:1.55;overflow-x:hidden;
-  background-image:radial-gradient(1100px 480px at 50% -300px,rgba(79,70,229,.06),transparent 70%);
+  background-image:radial-gradient(1400px 620px at 50% -300px,rgba(79,70,229,.13),transparent 70%);
   background-attachment:fixed;
 }
 [data-theme="dark"] body{background-image:radial-gradient(1400px 620px at 50% -300px,rgba(99,102,241,.2),transparent 70%)}
@@ -162,8 +162,7 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
   display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
   box-shadow:0 10px 26px -8px rgba(79,70,229,.7)}
 .lcard h2{font-size:20px;text-align:center;letter-spacing:-.4px}
-.lcard .hint,.lcard .llist{display:none}
-.lcard .sub{display:none}
+.lcard .sub{text-align:center;color:var(--mut);font-size:12px;margin:6px 0 20px;font-weight:650;letter-spacing:.3px}
 .hint{background:linear-gradient(135deg,rgba(79,70,229,.09),rgba(124,58,237,.09));
   border:1px solid rgba(79,70,229,.2);color:#3730a3;border-radius:var(--r-sm);
   padding:11px 13px;font-size:12.5px;margin-bottom:18px;line-height:1.65}
@@ -269,36 +268,18 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
   .rail{display:contents}
   .rail-brand,.rail-foot{display:none}
   .topbar,.content{margin-left:0}
-  .content{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
-  .tabs{position:fixed;left:10px;right:10px;bottom:calc(7px + env(safe-area-inset-bottom));z-index:50;
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:3px;
-    background:color-mix(in srgb,var(--surface) 98%,transparent);backdrop-filter:blur(14px) saturate(1.05);
-    border:1px solid var(--line);border-radius:15px;padding:4px;
-    box-shadow:0 7px 22px -14px rgba(15,23,42,.48);overflow:visible;flex:none;scrollbar-width:none}
+  .content{padding-bottom:88px}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;flex-direction:row;gap:3px;
+    background:color-mix(in srgb,var(--surface) 93%,transparent);backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);padding:7px 8px calc(7px + env(safe-area-inset-bottom));
+    box-shadow:0 -6px 22px -14px rgba(15,23,42,.45);overflow-x:auto;overflow-y:hidden;flex:none;scrollbar-width:none}
   .tabs::-webkit-scrollbar{display:none}
-  .tabs button{min-width:0;width:100%;flex:1 1 0;flex-direction:column;gap:2px;padding:6px 3px;text-align:center;justify-content:center;
-    border:1px solid transparent;border-radius:10px;min-height:50px}
+  .tabs button{flex:1 0 auto;min-width:66px;flex-direction:column;gap:3px;padding:8px 6px;text-align:center;justify-content:center}
   .tabs button::before{display:none}
-  .tabs button.on{background:var(--surface-3);color:var(--ink);border-color:var(--line-2);box-shadow:none}
-  .tabs button[data-tab="home"].on{background:var(--surface);border:1px solid var(--ink);box-shadow:none}
-  .tabs button[data-tab="home"] .ic{width:20px;height:20px;stroke-width:2}
-  .tabs button[data-tab="home"].on .ic{color:var(--ink)}
-  .tabs .tb b{font-size:10px;line-height:1.1;white-space:nowrap}
+  .tabs .tb b{font-size:10.5px}
   .tabs .tb small{display:none}
-  .tabs .bdg{position:absolute;top:2px;right:2px;margin:0;min-width:16px;height:16px;font-size:9px}
-  .tabs button.hide{display:none}
-  .pane#pane-home .grid2{grid-template-columns:1fr}
-  .pane#pane-home .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .pane#pane-home .kpi{padding:13px 12px;border-radius:13px}
-  .pane#pane-home .kpi b{font-size:22px}
-  .pane#pane-home .card{margin:10px 0;padding:14px}
+  .tabs .bdg{position:absolute;top:3px;right:5px;margin:0;min-width:17px;height:17px;font-size:9.5px}
   .search-mini{display:none}
-  .topbar .tb-row{padding:9px 12px;min-height:54px}
-  .page-t h2{font-size:15px;gap:7px}
-  .page-t p{font-size:10.5px}
-  .tb-acts{gap:5px}
-  .tb-acts .iconbtn{width:34px;height:34px;border-radius:9px}
-  .tb-acts .chip{max-width:120px;overflow:hidden;text-overflow:ellipsis;padding:6px 9px;font-size:10.5px}
 }
 
 /* ============================================================================
@@ -411,6 +392,14 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 .frow.bare{padding:0;border:none}
 .f2{flex:1 1 45%;min-width:150px}
 .f1{flex:1 1 100%}
+/* numbered question row - ek sawal, ek number (Google-Forms jaisa flow) */
+.q{display:flex;gap:10px;align-items:flex-start}
+.q>.qn{flex:0 0 24px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line-2);
+  background:var(--surface-2);color:var(--mut);font-size:11.5px;font-weight:850;
+  display:flex;align-items:center;justify-content:center;margin-top:21px;transition:.15s}
+.q>.qb{flex:1 1 auto;min-width:0}
+.q:focus-within>.qn{background:var(--grad);border-color:transparent;color:#fff}
+.qlist{gap:16px 18px}
 .seg{display:flex;gap:8px}
 .seg button{flex:1;padding:11px 10px;border-radius:var(--r-xs);border:1.5px solid var(--line-2);
   background:var(--surface-2);font-size:13.5px;font-weight:750;color:var(--mut);
@@ -427,6 +416,15 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 .pbox:hover>.ic{color:var(--pri)}
 .pbox label{cursor:pointer;color:var(--pri);font-size:12px;margin:0;font-weight:800;text-transform:none;letter-spacing:0}
 .pbox input[type=file]{display:none}
+.pbox .pname{font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.35}
+.pbox .psub{font-size:11px;color:var(--mut);margin-top:2px;font-weight:600}
+.pbtns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.pbox .pbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;
+  padding:8px 13px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);
+  color:var(--pri);font-size:12px;font-weight:800;cursor:pointer;transition:.15s;margin:0;
+  letter-spacing:0;text-transform:none}
+.pbox .pbtn:hover{border-color:var(--pri);background:rgba(79,70,229,.07)}
+.pbox .pbtn .ic{width:15px;height:15px;color:currentColor;display:inline-block;margin:0}
 .pprev{margin-top:12px;position:relative;display:none}
 .pprev img{max-width:100%;max-height:210px;border-radius:var(--r-xs);border:1px solid var(--line)}
 .pprev .x{position:absolute;top:6px;right:6px;background:var(--bad);color:#fff;padding:6px 12px;
@@ -751,7 +749,6 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 </style>
 </head>
 <body>
-
 <!-- ============================== LOGIN ============================== -->
 <div id="loginScreen">
   <div class="lwrap">
@@ -1140,6 +1137,7 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 <div id="modalHost"></div>
 <div id="toasts"></div>
 <div id="printArea" class="hide"></div>
+
 <script>
 "use strict";
 /* =====================================================================
@@ -1869,38 +1867,18 @@ const SVC = {
   },
   async login(username, password) {
     const uname = U.str(username);
-    const pwd = String(password || '');
     if (!uname) throw bad('Enter a username.');
-    if (!pwd) throw bad('Enter a password.');
-
-    /* Built-in admin remains usable even when Firebase cloud mode is enabled. */
-    const ready = READY_LOGINS.find(a =>
-      String(a.username).toLowerCase() === uname.toLowerCase() && String(a.password) === pwd
-    );
-    if (ready && String(ready.role).toUpperCase() === 'ADMIN') {
-      const localAdmin = {
-        id: 'u_' + ready.username, username: ready.username, email: '',
-        display: ready.name, role: 'ADMIN', refId: '', active: true,
-        mustChange: false, createdAt: T, _plainPass: ready.password
-      };
-      /* Built-in admin is a local emergency/admin login. Do not block this
-       * login on Firestore connectivity or Firestore rules. Firebase is still
-       * used by the application for shared reports/data after sign-in. */
-      try {
-        if (!DB._cloud()) await DB.set(N.user(localAdmin.id), localAdmin);
-      } catch (e) {}
-      /* Do not write the admin session to Firestore. The admin can enter the
-       * application even if Firestore rules/network are unavailable. */
-      const token = CRYPTO.randomHex(32);
-      return { token: token, user: this.publicUser(localAdmin) };
-    }
-
+    if (!String(password || '')) throw bad('Enter a password.');
+    /* Online mode must really be able to reach the shared database. A silent
+     * failure here would otherwise look exactly like a wrong password. */
     const cloud = this.online();
     if (cloud) await this.assertOnline();
     const u = await this.findUserByName(uname);
-    if (!u || !(await this.checkPassword(u, pwd))) {
-      if (cloud) throw bad('No account matches this username/e-mail and password. Check the Firebase users collection.');
-      throw bad('Wrong username or password.');
+    if (!u || !(await this.checkPassword(u, password))) {
+      if (cloud) throw bad('No account matches this e-mail and password. '
+        + 'Ask the administrator to add it in the Firebase "users" collection.');
+      throw bad('Wrong username or password. (This copy is not connected to the '
+        + 'online database - only the built-in admin account can sign in.)');
     }
     if (u.active === false) throw forbidden('This account has been disabled. Please contact the administrator.');
     const token = await this.createSession(u.id);
@@ -2428,15 +2406,25 @@ function pdfNew(title) {
   D.col = function (c) { D.op(num(c[0]) + ' ' + num(c[1]) + ' ' + num(c[2]) + ' rg'); };
   D.colS = function (c) { D.op(num(c[0]) + ' ' + num(c[1]) + ' ' + num(c[2]) + ' RG'); };
 
-  /* Baseline y par text. */
+  /* Baseline y par text. Color hamesha explicit - warna PDF ke graphics state
+   * ki purani color inherit ho jati hai aur text black dikhta hai. */
   D.txt = function (str, x, size, bold, color) {
-    if (color) D.col(color);
+    D.col(color || PDF_PAL.ink);
     D.op('BT /' + (bold ? 'F2' : 'F1') + ' ' + num(size) + ' Tf '
       + '1 0 0 1 ' + num(x) + ' ' + num(y) + ' Tm (' + pdfStr(str) + ') Tj ET');
   };
   /* Right-aligned text, right edge ke hisaab se. */
   D.txtR = function (str, right, size, bold, color) {
     D.txt(str, right - textW(str, size, bold), size, bold, color);
+  };
+  /* Absolute y par text (cursor ko chhede bina). Purane 6-argument
+   * D.txt(str, x, y, size, bold, color) calls isi se chalte hain - warna
+   * y size ban jaata hai aur page par giant black text chhap jaata hai. */
+  D.txtY = function (str, x, atY, size, bold, color) {
+    const keep = y;
+    y = atY;
+    D.txt(str, x, size, bold, color);
+    y = keep;
   };
 
   /* POORI PDF me ek hi coordinate convention: cursor `y` seedha PDF ka
@@ -2620,7 +2608,7 @@ function pdfKv(D, rows) {
       const top = D.y() + 4;
       const bbot = top - 16;
       D.box(PDF_L, top, PDF_CW, 16, PDF_PAL.band);
-      D.txt(row.band, PDF_L + padX, top - 11, 9, true, PDF_PAL.ink);
+      D.txtY(row.band, PDF_L + padX, top - 11, 9, true, PDF_PAL.ink);
       D.setY(bbot - 4);
       continue;
     }
@@ -2684,7 +2672,7 @@ async function reportPdf(r) {
   const bw = textW(badge, 9, true) + 20;
   /* badge: page top se 30..49 ke beech */
   D.box(PDF_R - bw, PDF_H - 30, bw, 19, stCol);
-  D.txt(badge, PDF_R - bw + 10, PDF_H - 43, true, [0.07, 0.11, 0.21]);
+  D.txtY(badge, PDF_R - bw + 10, PDF_H - 43, 9, true, [0.07, 0.11, 0.21]);
   /* cursor header band ke neeche - content yahan se shuru */
   D.setY(PDF_H - HEAD_H - 16);
 
@@ -2704,17 +2692,17 @@ async function reportPdf(r) {
     D.box(x, stripTop, cw, chH, PDF_PAL.band);
     /* box ke upar 3pt ka accent bar */
     D.rect(x, stripTop, cw, 3, PDF_PAL.acc);
-    D.txt(c[0], x + 8, stripTop - 14, 6.6, true, PDF_PAL.mut);
+    D.txtY(c[0], x + 8, stripTop - 14, 6.6, true, PDF_PAL.mut);
     /* naam 2 line tak, box ke andar fit hona chahiye */
     const lines = wrapHard(c[1], 9.4, true, cw - 16).slice(0, 2);
     let ty = stripTop - 26;
-    for (const ln2 of lines) { D.txt(ln2, x + 8, ty, 9.4, true, PDF_PAL.ink); ty -= 11; }
+    for (const ln2 of lines) { D.txtY(ln2, x + 8, ty, 9.4, true, PDF_PAL.ink); ty -= 11; }
   });
   D.setY(stripTop - chH - 6);
 
   /* route */
   const route = [nm.region, nm.state, nm.div].filter(function (v) { return v && v !== '-'; }).join('  ->  ');
-  D.txt(route || '-', PDF_L, D.y(), 8.4, false, PDF_PAL.mut);
+  D.txtY(route || '-', PDF_L, D.y(), 8.4, false, PDF_PAL.mut);
   D.down(16);
 
   /* ---------- Report Information ---------- */
@@ -2750,7 +2738,7 @@ async function reportPdf(r) {
     if (jpg) imgs.push({ slot: slot, ref: D.addJpeg(jpg.bytes, jpg.w, jpg.h), w: jpg.w, h: jpg.h });
   }
   if (!imgs.length) {
-    D.txt('No photos are attached to this report.', PDF_L, D.y() - 8, 8.6, false, PDF_PAL.mut);
+    D.txtY('No photos are attached to this report.', PDF_L, D.y() - 8, 8.6, false, PDF_PAL.mut);
     D.down(16);
   } else {
     const perRow = 2;
@@ -2786,7 +2774,7 @@ async function reportPdf(r) {
       for (let k = 0; k < pair.length; k++) {
         const it = pair[k];
         const x = PDF_L + k * (iw + igap);
-        D.txt(CONST.PHOTO_LABEL[it.slot] || it.slot, x + 8, D.y() - 10, 8, true, PDF_PAL.ink);
+        D.txtY(CONST.PHOTO_LABEL[it.slot] || it.slot, x + 8, D.y() - 10, 8, true, PDF_PAL.ink);
       }
       D.down(16);
     }
@@ -2834,16 +2822,16 @@ async function reportPdf(r) {
     const x = PDF_L + i * (sw + 8);
     D.box(x, stop, sw, sh, [0.985, 0.99, 1]);
     /* title upar, signature line beech me, naam uske neeche */
-    D.txt(s[0], x + 8, stop - 11, 8.6, true, PDF_PAL.ink);
+    D.txtY(s[0], x + 8, stop - 11, 8.6, true, PDF_PAL.ink);
     D.line(x + 8, sbot + 26, x + sw - 8, sbot + 26);
-    D.txt(s[1], x + 8, sbot + 14, 7.2, false, PDF_PAL.mut);
+    D.txtY(s[1], x + 8, sbot + 14, 7.2, false, PDF_PAL.mut);
   });
   D.setY(sbot);
 
   /* ---------- last line ---------- */
   D.need(18);
   D.down(10);
-  D.txt('Computer-generated record - Checking Report System - printed by '
+  D.txtY('Computer-generated record - Checking Report System - printed by '
     + (UI.user ? (UI.user.display || UI.user.username) : '-') + ' on ' + now,
     PDF_L, D.y(), 7.4, false, PDF_PAL.mut);
 
@@ -2994,32 +2982,6 @@ function reportFileName(r) {
   const tag = String(r.id || '').slice(-6);
   return safeName(nm.box) + '_' + safeName(date) + '_' + tag + '.pdf';
 }
-/* ============================== DRAFT PERSISTENCE ============================== */
-function draftStoreKey() {
-  const u = UI.user || {};
-  return 'crs_draft_' + String(u.id || u.username || 'guest');
-}
-function saveDraftLocal() {
-  if (!UI.user || !UI.draft) return;
-  try {
-    localStorage.setItem(draftStoreKey(), JSON.stringify({ draft:UI.draft, step:UI.step || 0, savedAt:Date.now() }));
-  } catch (e) {}
-}
-function loadDraftLocal() {
-  if (!UI.user) return null;
-  try {
-    const raw = localStorage.getItem(draftStoreKey());
-    if (!raw) return null;
-    const x = JSON.parse(raw);
-    if (!x || !x.draft) return null;
-    return x;
-  } catch (e) { return null; }
-}
-function clearDraftLocal() {
-  if (!UI.user) return;
-  try { localStorage.removeItem(draftStoreKey()); } catch (e) {}
-}
-
 /* ============================== UI core ============================== */
 const UI = {
   user: null, token: null, scope: null,
@@ -3029,7 +2991,6 @@ const UI = {
   step: 0,
   cmdIdx: 0,
   cmdItems: [],
-  currentTab: null,
 
   debouncedReports: () => debouncedReports(),
   peek(inputId, btn) {
@@ -3070,6 +3031,7 @@ const ICONS = {
   sun:     '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   moon:    '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
   camera:  '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  image:   '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/>',
   down:    '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
   up:      '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/>',
   chart:   '<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>',
@@ -3301,24 +3263,12 @@ function unlockAfterPasswordChange() {
   const b = $('mustChangeBanner');
   if (b) { b.className = 'msg'; b.innerHTML = ''; }
 }
-function tab(name, fromHistory) {
-  if (UI.user && UI.currentTab === 'new' && UI.draft) {
-    captureStep();
-    saveDraftLocal();
-  }
+function tab(name) {
   if (UI.user && UI.user.mustChange && name !== 'settings') {
     toast('Change your password first — the other tabs unlock after that.', 'bad');
     name = 'settings';
   }
   if (PAGES.indexOf(name) === -1) name = 'home';
-  const changed = UI.currentTab !== name;
-  UI.currentTab = name;
-  if (!fromHistory && changed && UI.user) {
-    try {
-      const step = name === 'new' ? (Number.isFinite(UI.step) ? UI.step : 0) : null;
-      history.pushState({ crs: 'app', tab: name, step: step }, '', location.href);
-    } catch (e) {}
-  }
   for (const p of PAGES) $('pane-' + p).classList.toggle('hide', p !== name);
   for (const b of document.querySelectorAll('#tabsBar button')) b.classList.toggle('on', b.dataset.tab === name);
   setPageMeta(name);
@@ -3330,31 +3280,6 @@ function tab(name, fromHistory) {
   if (name === 'users')    { buildUserRef(); loadUsers(); }
   if (name === 'settings') renderPdfOptions();
 }
-
-/* Mobile/browser Back button: move back through app pages instead of leaving
- * the application immediately. New-report steps are also part of history. */
-window.addEventListener('popstate', async (ev) => {
-  if (!UI.user) return;
-  const st = ev.state;
-  if (!st || st.crs !== 'app') {
-    // Keep the first Back press inside the app on the dashboard.
-    try { history.replaceState({ crs:'app', tab:'home', step:null }, '', location.href); } catch (e) {}
-    tab('home', true);
-    return;
-  }
-  const name = PAGES.indexOf(st.tab) !== -1 ? st.tab : 'home';
-  if (name === 'new' && UI.draft && Number.isInteger(st.step)) {
-    UI.currentTab = 'new';
-    UI.step = Math.max(0, Math.min(st.step, formSteps().length - 1));
-    for (const p of PAGES) $('pane-' + p).classList.toggle('hide', p !== 'new');
-    for (const b of document.querySelectorAll('#tabsBar button')) b.classList.toggle('on', b.dataset.tab === 'new');
-    setPageMeta('new');
-    await renderStep();
-    window.scrollTo(0, 0);
-  } else {
-    tab(name, true);
-  }
-});
 
 /* ============================== COMMAND PALETTE ============================== */
 function cmdActions() {
@@ -3538,27 +3463,17 @@ function loadCloudCfg() {
   try {
     const raw = localStorage.getItem(CLOUD_LS);
     if (!raw) {
-      if (DEFAULT_FB.projectId && /^https?:$/.test(location.protocol)
-          && !/^(localhost|127\.0\.0\.1|\[::1\])$/i.test(location.hostname)) {
+      if (DEFAULT_FB.projectId && /^https?:$/.test(location.protocol)) {
         DB.setCloud({ on: true, provider: 'firebase', fb: DEFAULT_FB, url: '', key: '' });
         saveCloudCfg();
       }
       return;
     }
     const c = JSON.parse(raw);
-    /* If an older/local copy saved an empty or OFF cloud config, restore the
-       built-in Firebase project automatically when this page is hosted online. */
-    const hasFirebase = c && c.provider === 'firebase' && c.fb && c.fb.projectId && c.fb.apiKey;
-    if ((!hasFirebase || !c.on) && DEFAULT_FB.projectId && /^https?:$/.test(location.protocol)
-        && !/^(localhost|127\.0.0.1|\[::1\])$/i.test(location.hostname)) {
-      DB.setCloud({ on: true, provider: 'firebase', fb: DEFAULT_FB, url: '', key: '' });
-      saveCloudCfg();
-    } else {
-      DB.setCloud({
-        on: !!c.on, provider: c.provider || 'firebase', fb: c.fb || null,
-        url: c.url || '', key: c.key || '',
-      });
-    }
+    DB.setCloud({
+      on: !!c.on, provider: c.provider || 'firebase', fb: c.fb || null,
+      url: c.url || '', key: c.key || '',
+    });
   } catch (e) { /* kharab config - local hi reh jayega */ }
 }
 function saveCloudCfg() {
@@ -3614,7 +3529,7 @@ async function migrateDemoToEnglish() {
       if (changed) await DB.set(N.report(r.id), Object.assign({}, r, { values: values, approvals: approvals }));
     }
   } catch (e) { /* migration is best-effort; never block boot */ }
-  try { await SVC.setSetting('mig.english.v1', U.nowIso()); } catch (e) { console.warn('Migration flag could not be saved:', e); }
+  await SVC.setSetting('mig.english.v1', U.nowIso());
 }
 
 async function boot() {
@@ -3624,12 +3539,19 @@ async function boot() {
     await migrateDemoToEnglish();
     await seedInitialData();
   } catch (e) {
-    /* Never silently disable Firebase. If the shared database is unavailable,
-       keep cloud mode ON so login/data errors remain visible and the next
-       operation can retry the same online database. */
+    /* If the shared cloud is configured but unreachable, keep the app usable
+     * on this device instead of showing a dead screen. Settings me cloud form
+     * nahi hai, isliye saved config ko haath nahi chheda - bas is page load
+     * ke liye local par aa jaate hain. Agli baar page reload karne par cloud
+     * dobara try hoga aur data wapas aa jaayega. */
     if (DB._cloud()) {
-      console.error('Firebase boot error:', e);
-      setTimeout(() => toast('Firebase online data could not be loaded: ' + ((e && e.message) || e), 'bad'), 600);
+      const c = DB.cloud || {};
+      DB.setCloud({ on: false, provider: c.provider, fb: c.fb, url: c.url, key: c.key });
+      try {
+        await DB.open();
+        await seedInitialData();
+      } catch (e2) { throw e2; }
+      setTimeout(() => toast('The shared cloud could not be reached - showing this device\'s local data. It will connect again on the next refresh.', 'bad'), 600);
     } else {
       throw e;
     }
@@ -3717,7 +3639,6 @@ async function doLogout() {
   try { await SVC.destroySession(UI.token); } catch (e) {}
   dropToken(UI.token);
   UI.user = null; UI.token = null; UI.scope = null;
-  clearDraftLocal();
   UI.pendingPhotos = {}; UI.draft = null; UI.step = 0;
   closeModal();
   if ($('printArea')) closePrint();
@@ -3737,14 +3658,8 @@ async function afterLogin(user) {
   const rr = $('railRole'); if (rr) rr.textContent = user.role;
   buildTabs();
   applyRights();
-  if (user.mustChange) {
-    try { history.replaceState({ crs:'app', tab:'settings', step:null }, '', location.href); } catch (e) {}
-    lockForPasswordChange();
-  } else {
-    try { history.replaceState({ crs:'app', tab:'home', step:null }, '', location.href); } catch (e) {}
-    unlockAfterPasswordChange();
-    tab('home', true);
-  }
+  if (user.mustChange) lockForPasswordChange();
+  else { unlockAfterPasswordChange(); tab('home'); }
   await refreshBadges();
 }
 
@@ -4435,8 +4350,6 @@ UI.gotoStep = async function (dir) {
     }
   }
   UI.step = target;
-  saveDraftLocal();
-  try { history.pushState({ crs:'app', tab:'new', step:UI.step }, '', location.href); } catch (e) {}
   await renderStep();
   window.scrollTo(0, 0);
 };
@@ -4486,7 +4399,6 @@ UI.jumpStep = async function (i) {
     }
   }
   UI.step = i;
-  saveDraftLocal();
   await renderStep();
   window.scrollTo(0, 0);
 };
@@ -4505,7 +4417,6 @@ function fieldHtml(f, val) {
 UI.setYN = function (key, val, btn) {
   if (!UI.draft) return;
   UI.draft.values[key] = val;
-  saveDraftLocal();
   const box = btn.parentNode;
   const bs = box.querySelectorAll('button');
   for (let i = 0; i < bs.length; i++) bs[i].className = '';
@@ -4517,14 +4428,14 @@ function photoBoxHtml(slot) {
   return '<div class="pbox" ondragover="event.preventDefault();this.classList.add(\'drag\')"'
     + ' ondragleave="this.classList.remove(\'drag\')" ondrop="event.preventDefault();this.classList.remove(\'drag\');UI.onDrop(\'' + slot + '\',event)">'
     + ic('camera', 'lg')
-    + '<label>' + U.esc(CONST.PHOTO_LABEL[slot]) + '</label>'
-    + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0 5px">'
-    + '<button type="button" class="btn btn-sm btn-pri" onclick="document.getElementById(\'cam_' + slot + '\').click()">📷 Take Photo</button>'
-    + '<button type="button" class="btn btn-sm" onclick="document.getElementById(\'gal_' + slot + '\').click()">🖼️ Gallery</button>'
+    + '<div class="pname">' + U.esc(CONST.PHOTO_LABEL[slot]) + '</div>'
+    + '<div class="psub">Take a live photo, or pick one from your gallery</div>'
+    + '<div class="pbtns">'
+      + '<label class="pbtn" for="pf_' + slot + '_cam">' + ic('camera', 'sm') + ' Camera</label>'
+      + '<input type="file" id="pf_' + slot + '_cam" accept="image/*" capture="environment" onchange="onPhoto(\'' + slot + '\',this)">'
+      + '<label class="pbtn" for="pf_' + slot + '_gal">' + ic('image', 'sm') + ' Gallery</label>'
+      + '<input type="file" id="pf_' + slot + '_gal" accept="image/*" onchange="onPhoto(\'' + slot + '\',this)">'
     + '</div>'
-    + '<input type="file" id="cam_' + slot + '" accept="image/*" capture="environment" onchange="onPhoto(\'' + slot + '\',this)" hidden>'
-    + '<input type="file" id="gal_' + slot + '" accept="image/*" onchange="onPhoto(\'' + slot + '\',this)" hidden>'
-    + '<div class="pmeta">Camera se photo lo ya Gallery se select karo.</div>'
     + '<div class="pprev" id="pv_' + slot + '"' + (data ? ' style="display:block"' : '') + '>'
       + '<img id="pi_' + slot + '" src="' + (data || '') + '">'
       + '<button type="button" class="x" onclick="clearPhoto(\'' + slot + '\')">Remove</button></div>'
@@ -4541,7 +4452,7 @@ async function renderStep() {
   let h = '';
 
   if (st.key === 'basic') {
-    h = '<div class="card"><h3>' + ic('doc') + 'Basic Information'
+    h = '<div class="card"><h3>' + ic('doc') + 'Section 1 of ' + (steps.length - 1) + ' &middot; Basic Information'
       + '<span class="sub">Step 1 — which box is being checked</span></h3>'
       + '<div class="frow bare" style="margin-top:14px">'
       + '<div class="f2"><label>Date *</label><input type="date" id="rDate" value="' + U.esc(d.date) + '"></div>'
@@ -4554,16 +4465,22 @@ async function renderStep() {
       + '</div></div>';
   } else if (st.sec) {
     const s = st.sec;
-    h = '<div class="card"><h3>' + ic('list') + U.esc(s.title)
-      + '<span class="sub">Step ' + (UI.step + 1) + '</span></h3>'
-      + '<div class="note">Fields marked with <span class="req">*</span> are required. '
-      + 'On a phone, tap the photo box — the camera opens automatically. Photos are shrunk before saving, so the app stays fast.</div>'
-      + '<div class="frow bare" style="margin-top:14px">';
-    for (const f of s.fields) {
-      h += '<div class="' + (f.type === 'text' ? 'f1' : 'f2') + '">'
-        + '<label>' + U.esc(f.label) + (f.required ? ' <span class="req">*</span>' : '') + '</label>'
-        + fieldHtml(f, d.values[f.key]) + '</div>';
-    }
+    const secNo = UI.step + 1;                /* Basic = section 1 */
+    const secTotal = steps.length - 1;        /* review is not a section */
+    h = '<div class="card formcard"><h3>' + ic('list')
+      + 'Section ' + secNo + ' of ' + secTotal + ' &middot; ' + U.esc(s.title)
+      + '<span class="sub">' + s.fields.length + ' question' + (s.fields.length === 1 ? '' : 's')
+      + (s.photos && s.photos.length ? ' &middot; ' + s.photos.length + ' photo' + (s.photos.length === 1 ? '' : 's') : '')
+      + '</span></h3>'
+      + '<div class="note">Answer every question marked <span class="req">*</span>. '
+      + 'For photos use <b>Camera</b> to take a live photo or <b>Gallery</b> to pick one already on your phone.</div>'
+      + '<div class="frow bare qlist" style="margin-top:14px">';
+    s.fields.forEach(function (f, qi) {
+      h += '<div class="' + (f.type === 'text' ? 'f1' : 'f2') + ' q">'
+        + '<div class="qn">' + (qi + 1) + '</div>'
+        + '<div class="qb"><label>' + U.esc(f.label) + (f.required ? ' <span class="req">*</span>' : '') + '</label>'
+        + fieldHtml(f, d.values[f.key]) + '</div></div>';
+    });
     h += '</div>';
     if (s.photos && s.photos.length) {
       h += '<div class="subhead">' + ic('camera', 'sm') + 'Photos</div>'
@@ -4571,7 +4488,7 @@ async function renderStep() {
     }
     h += '</div>';
   } else {
-    h = '<div class="card"><h3>' + ic('checkc') + 'Review &amp; Save'
+    h = '<div class="card"><h3>' + ic('checkc') + 'Final step &middot; Review &amp; Save'
       + '<span class="sub">Check everything, then save</span></h3>'
       + '<table class="kv" style="margin-top:12px">'
       + '<tr><th>Date</th><td>' + U.esc(d.date || '-') + '</td></tr>'
@@ -4657,17 +4574,9 @@ async function buildForm() {
     }
   }
   if (!UI.draft) {
-    const saved = loadDraftLocal();
-    if (saved && saved.draft) {
-      UI.draft = saved.draft;
-      UI.step = Number.isInteger(saved.step) ? Math.max(0, Math.min(saved.step, formSteps().length - 1)) : 0;
-      UI.pendingPhotos = UI.draft.photos || {};
-      toast('Draft restored — your previous entries are still here.', 'ok');
-    } else {
-      UI.draft = newDraft();
-      UI.step = 0;
-      UI.pendingPhotos = UI.draft.photos;
-    }
+    UI.draft = newDraft();
+    UI.step = 0;
+    UI.pendingPhotos = UI.draft.photos;
   }
   renderStep();
 }
@@ -4676,7 +4585,6 @@ async function onPhoto(slot, input) {
   const f = input.files && input.files[0];
   if (!f) return;
   await handlePhotoFile(slot, f);
-  saveDraftLocal();
   input.value = '';
 }
 UI.onDrop = async function (slot, ev) {
@@ -4709,9 +4617,6 @@ async function handlePhotoFile(slot, f) {
 }
 function clearPhoto(slot) {
   delete UI.pendingPhotos[slot];
-  const cam = $('cam_' + slot), gal = $('gal_' + slot);
-  if (cam) cam.value = '';
-  if (gal) gal.value = '';
   const pv = $('pv_' + slot), img = $('pi_' + slot), pm = $('pu_' + slot);
   if (pv) pv.style.display = 'none';
   if (img) img.src = '';
@@ -4744,7 +4649,6 @@ async function submitReport(ev) {
           values: UI.draft.values,
           photos: photos,
         });
-        clearDraftLocal();
         UI.draft = null; UI.step = 0; UI.pendingPhotos = {};
         toast('Report updated. The level above will review it again.', 'ok');
       } else {
@@ -4757,7 +4661,6 @@ async function submitReport(ev) {
           values: UI.draft.values,
           photos: photos,
         });
-        clearDraftLocal();
         UI.draft = null; UI.step = 0; UI.pendingPhotos = {};
         toast('Report saved. The level above will approve it now.', 'ok');
       }
