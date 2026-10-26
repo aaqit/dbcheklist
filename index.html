@@ -237,6 +237,7 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 .tabs button.on::before{transform:translateY(-50%) scaleY(1)}
 .tabs .tb{display:flex;flex-direction:column;min-width:0;line-height:1.25}
 .tabs .tb b{font-weight:750;font-size:13.5px}
+.tabs .tb-short{display:none}
 .tabs .tb small{font-size:10px;opacity:.72;font-weight:600}
 .tabs .bdg{margin-left:auto;background:var(--grad-r);color:#fff;font-size:10.5px;font-weight:800;
   min-width:20px;height:20px;border-radius:var(--r-full);display:flex;align-items:center;justify-content:center;padding:0 6px}
@@ -264,22 +265,32 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 
 .content{margin-left:252px;padding:18px 0 60px;min-height:calc(100vh - 63px)}
 .content>.wrap{padding:0 18px}
-@media(max-width:880px){
+@media(max-width:880px) and (pointer:coarse){
   .rail{display:contents}
   .rail-brand,.rail-foot{display:none}
   .topbar,.content{margin-left:0}
-  .content{padding-bottom:88px}
-  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;flex-direction:row;gap:3px;
-    background:color-mix(in srgb,var(--surface) 93%,transparent);backdrop-filter:blur(14px);
-    border-top:1px solid var(--line);padding:7px 8px calc(7px + env(safe-area-inset-bottom));
-    box-shadow:0 -6px 22px -14px rgba(15,23,42,.45);overflow-x:auto;overflow-y:hidden;flex:none;scrollbar-width:none}
-  .tabs::-webkit-scrollbar{display:none}
-  .tabs button{flex:1 0 auto;min-width:66px;flex-direction:column;gap:3px;padding:8px 6px;text-align:center;justify-content:center}
+  .content{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;flex-direction:row;gap:4px;
+    background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+    box-shadow:0 -8px 26px -18px rgba(15,23,42,.5);overflow:hidden;flex:none}
+  .tabs button{flex:1 1 0;width:auto;min-width:0;flex-direction:column;gap:3px;padding:6px 2px;
+    text-align:center;justify-content:center;border-radius:10px;color:var(--mut)}
   .tabs button::before{display:none}
-  .tabs .tb b{font-size:10.5px}
+  .tabs button:hover{background:var(--surface-2);color:var(--ink-2)}
+  .tabs button.on{background:rgba(79,70,229,.1);color:var(--pri)}
+  .tabs button svg{width:19px;height:19px}
+  .tabs .tb{width:100%}
+  .tabs .tb b{font-size:10px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   .tabs .tb small{display:none}
-  .tabs .bdg{position:absolute;top:3px;right:5px;margin:0;min-width:17px;height:17px;font-size:9.5px}
+  .tabs .tb-full{display:none}
+  .tabs .tb-short{display:inline}
+  .tabs .bdg{position:absolute;top:2px;right:3px;margin:0;min-width:16px;height:16px;font-size:9px;
+    padding:0 4px;border:2px solid var(--surface)}
   .search-mini{display:none}
+}
+@media(max-width:380px){
+  .tabs .tb b{font-size:9.5px}
 }
 
 /* ============================================================================
@@ -365,7 +376,7 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 .stepbar{position:sticky;top:63px;z-index:30;background:color-mix(in srgb,var(--surface) 90%,transparent);
   backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;
   margin:16px 0;box-shadow:var(--e2)}
-@media(max-width:880px){.stepbar{top:57px}}
+@media(max-width:880px) and (pointer:coarse){.stepbar{top:69px;padding:9px 12px;margin:10px 0;border-radius:12px}}
 .steps{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}
 .steps::-webkit-scrollbar{display:none}
 .step{flex:1 0 auto;min-width:124px;display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:11px;
@@ -383,6 +394,14 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
   transition:width .35s cubic-bezier(.4,0,.2,1)}
 .stepfoot{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
 .stepfoot .sp{margin-left:auto}
+@media(max-width:880px) and (pointer:coarse){
+  .steps{margin-bottom:8px;gap:5px}
+  .step{min-width:104px;gap:7px;padding:7px 9px;font-size:11.5px;border-radius:9px}
+  .step .sn{width:22px;height:22px;font-size:10.5px;border-radius:7px}
+  .stepfoot{margin-top:9px;gap:8px;flex-wrap:nowrap}
+  .stepfoot .sp{display:none}
+  .stepfoot .btn{flex:1 1 0;justify-content:center;min-height:34px}
+}
 .sect{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin:14px 0}
 .sect-h{background:linear-gradient(180deg,var(--surface-2),var(--surface-3));border-bottom:1px solid var(--line);
   padding:12px 15px;font-size:14px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:10px}
@@ -768,6 +787,15 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 @media(max-width:640px){
   .fbq{grid-template-columns:22px minmax(0,1fr) 32px}
   .fbq select,.fbq .fbr{grid-column:2}
+  .fbq .btn-xs{min-height:32px;min-width:32px;padding:6px 8px}
+  .fbq .fbr{padding:6px 0;min-height:32px}
+  .fbq select{min-height:34px}
+  .fbbar .btn,.fbsech .btn,.fbfoot .btn{min-height:34px}
+  .fbphotos label{padding:5px 0}
+  .tchev{width:30px;height:30px}
+  .eye{min-height:34px}
+  .modal-acts .btn{flex:1 1 auto}
+  #printArea .pa-bar .btn{min-height:34px}
 }
 /* ---- user details modal ---- */
 .udet{display:grid;gap:0;margin-top:12px}
@@ -2857,24 +2885,19 @@ async function reportPdf(r) {
   });
   D.setY(stripTop - chH - 6);
 
-  /* route */
-  const route = [nm.region, nm.state, nm.div].filter(function (v) { return v && v !== '-'; }).join('  ->  ');
-  D.txtY(route || '-', PDF_L, D.y(), 8.4, false, PDF_PAL.mut);
-  D.down(16);
+  /* route (sirf region -> state; division upar strip me hai) */
+  const route = [nm.region, nm.state].filter(function (v) { return v && v !== '-'; }).join('  ->  ');
+  if (route) {
+    D.txtY(route, PDF_L, D.y(), 8.4, false, PDF_PAL.mut);
+    D.down(16);
+  }
 
   /* ---------- Report Information ---------- */
   pdfH2(D, 'Report Information');
   const info = [];
-  info.push({ k: 'Box Executive', v: nm.box });
-  info.push({ k: 'Supervisor', v: nm.sup + (nm.supCode ? '   (' + nm.supCode + ')' : '') });
-  info.push({ k: 'Division', v: nm.div });
-  info.push({ k: 'State', v: nm.state });
-  info.push({ k: 'Region', v: nm.region });
-  info.push({ k: 'Month', v: nm.month });
   info.push({ k: 'Checking Date', v: nm.date });
   info.push({ k: 'Created On', v: U.fmtTime(r.createdAt) });
   info.push({ k: 'Created By', v: r.createdBy || '-' });
-  info.push({ k: 'Status', v: statusLbl });
   if (r.emailTo) info.push({ k: 'Box Executive Email', v: r.emailTo });
   if (r.remark) info.push({ k: 'Overall Remarks', v: r.remark });
   info.forEach(function (row, i) { row.zebra = i % 2 === 1; });
@@ -3373,6 +3396,12 @@ const TAB_META = {
   settings: ['Settings',   'Backup and password', 'gear'],
 };
 
+/* Mobile bottom nav me jagah kam hoti hai - chhote labels. */
+const TAB_SHORT = {
+  home: 'Home', reports: 'Reports', new: 'New',
+  manage: 'Levels', users: 'Users', questions: 'Form', settings: 'Settings',
+};
+
 const TAB_ID = { new: 'tabNew', manage: 'tabManage', users: 'tabUsers', questions: 'tabQuestions' };
 
 /* ======================== FORM BUILDER (ADMIN) ======================== */
@@ -3636,7 +3665,7 @@ function buildTabs() {
     const m = TAB_META[k];
     const idAttr = TAB_ID[k] ? ' id="' + TAB_ID[k] + '"' : '';
     return '<button' + idAttr + ' data-tab="' + k + '" onclick="tab(\'' + k + '\')">' + ic(m[2])
-      + '<span class="tb"><b>' + U.esc(m[0]) + '</b><small>' + U.esc(m[1]) + '</small></span>'
+      + '<span class="tb"><b><span class="tb-full">' + U.esc(m[0]) + '</span><span class="tb-short">' + U.esc(TAB_SHORT[k] || m[0]) + '</span></b><small>' + U.esc(m[1]) + '</small></span>'
       + '<span class="bdg hide" id="bdg-' + k + '">0</span></button>';
   }).join('');
 }
@@ -4249,9 +4278,10 @@ function debouncedReports() { clearTimeout(_repTimer); _repTimer = setTimeout(lo
 
 function statusPill(r) {
   if (r.status === 'APPROVED') return '<span class="pill p-ok">Approved</span>';
-  // Check if report was sent back (has sent_back action in approvals)
-  const wasSentBack = r.approvals && r.approvals.some(a => a.action === 'sent_back');
-  if (r.status === 'PENDING' && wasSentBack) return '<span class="pill p-rej">Sent back</span>';
+  // Only the LATEST action matters: once resubmitted, the report is pending again.
+  const appr = r.approvals || [];
+  const lastAction = appr.length ? appr[appr.length - 1].action : null;
+  if (r.status === 'PENDING' && lastAction === 'sent_back') return '<span class="pill p-rej">Sent back</span>';
   if (r.status === 'REJECTED') return '<span class="pill p-rej">Sent back</span>';
   return '<span class="pill p-pend">Pending</span>';
 }
@@ -4391,15 +4421,26 @@ function approvalsTimeline(r) {
     + ' &middot; ' + U.esc(r.createdBy || '-') + '</span></div>');
   for (const a of appr) {
     const isSentBack = a.action === 'sent_back';
-    acts.push('<div class="tl-i ' + (isSentBack ? 'warn' : (a.byRole ? 'ok' : 'warn')) + '"><b>'
-      + U.esc(isSentBack ? 'Sent back by ' + a.byLabel : (a.byLabel || '-')) + '</b>'
+    const isResub = a.action === 'resubmitted';
+    let title = a.byLabel || '-';
+    if (isSentBack) title = 'Sent back by ' + a.byLabel;
+    else if (isResub) title = 'Resubmitted by ' + a.byLabel;
+    else if (a.action === 'approved') title = 'Approved by ' + a.byLabel;
+    acts.push('<div class="tl-i ' + (isSentBack ? 'warn' : 'ok') + '"><b>'
+      + U.esc(title) + '</b>'
       + '<span class="tl-r">' + U.esc(a.byRole || '') + ' &middot; ' + U.esc(U.fmtTime(a.at)) + '</span>'
       + (a.note ? '<div class="tl-n">' + U.esc(a.note) + '</div>' : '') + '</div>');
   }
   if (r.status === 'PENDING') {
-    acts.push('<div class="tl-i wait"><b>Awaiting approval</b><span class="tl-r">'
-      + (r.supName ? 'the level above ' + U.esc(r.supName) + ' is reviewing it' : 'the level above is reviewing it')
-      + '</span></div>');
+    const lastAction = appr.length ? appr[appr.length - 1].action : null;
+    if (lastAction === 'sent_back') {
+      acts.push('<div class="tl-i warn"><b>Waiting for revision</b><span class="tl-r">'
+        + 'the assigned supervisor can edit and save it again</span></div>');
+    } else {
+      acts.push('<div class="tl-i wait"><b>Awaiting approval</b><span class="tl-r">'
+        + (r.supName ? 'the level above ' + U.esc(r.supName) + ' is reviewing it' : 'the level above is reviewing it')
+        + '</span></div>');
+    }
   }
   return '<div class="tl">' + acts.join('') + '</div>';
 }
@@ -4426,14 +4467,12 @@ async function openReport(id) {
 
     + '<div class="meta">' + statusPill(r)
       + '<span class="pill p-neutral">' + ic('clock', 'sm') + U.esc(r.date || '') + '</span>'
-      + '<span class="pill p-neutral">' + ic('users', 'sm') + U.esc(r.supName || '-') + '</span>'
+      + '<span class="pill p-neutral">' + ic('users', 'sm') + U.esc(r.supName || '-')
+          + (r.supCode ? ' &middot; ' + U.esc(r.supCode) : '') + '</span>'
       + '<span class="pill p-ok">' + ic('star', 'sm') + 'Cash &#8377; ' + U.esc((r.values && r.values.cashAmt) || '-') + '</span>'
     + '</div>'
 
     + '<table class="kv">'
-    + '<tr><th>Box Executive</th><td>' + U.esc(r.boxExecName) + '</td></tr>'
-    + '<tr><th>Supervisor</th><td>' + U.esc(r.supName) + (r.supCode ? ' &nbsp;<span class="mini">' + U.esc(r.supCode) + '</span>' : '') + '</td></tr>'
-    + '<tr><th>Checking Date</th><td>' + U.esc(r.date) + '</td></tr>'
     + '<tr><th>Created on</th><td>' + U.esc(U.fmtTime(r.createdAt)) + ' &nbsp;<span class="mini">' + U.esc(r.createdBy || '-') + '</span></td></tr>'
     + (r.emailTo ? '<tr><th>Box Executive Email</th><td>' + U.esc(r.emailTo) + '</td></tr>' : '')
     + (r.remark ? '<tr><th>Remark</th><td>' + U.esc(r.remark) + '</td></tr>' : '')
@@ -4583,6 +4622,9 @@ function printSheetHtml(r) {
     ? appr.map(a => '<tr><th>' + U.esc(a.byLabel) + ' <span class="pill p-neutral">' + U.esc(a.byRole) + '</span></th>'
         + '<td>' + U.esc(U.fmtTime(a.at)) + (a.note ? '<br><em>' + U.esc(a.note) + '</em>' : '') + '</td></tr>').join('')
     : '<tr><th>Approval</th><td>No approval recorded yet</td></tr>';
+  /* Area / state ka chhota breadcrumb. Division upar strip me hai aur Month bhi,
+   * is liye yahan sirf woh cheezein hain jo kahin aur nahi dikh rahi hain. */
+  const route = [nm.region, nm.state].filter(x => x && x !== '-').join('  \u2192  ');
 
   return '<div class="pa-sheet">'
     + '<div class="pdoc-h"><div class="pm">&#128203;</div><div class="pt">'
@@ -4599,16 +4641,10 @@ function printSheetHtml(r) {
     + '<div class="pdn"><span>Month</span><b>' + U.esc(nm.month) + '</b></div>'
     + '</div>'
 
-    + '<div class="pdoc-route">' + U.esc([nm.region, nm.state, nm.div].filter(x => x && x !== '-').join('  \u2192  ')) + '</div>'
+    + (route ? '<div class="pdoc-route">' + U.esc(route) + '</div>' : '')
 
     + '<div class="pdoc-h2">Report Information</div>'
     + '<table class="kv">'
-    + '<tr><th>Box Executive</th><td>' + U.esc(nm.box) + '</td></tr>'
-    + '<tr><th>Supervisor</th><td>' + U.esc(nm.sup) + (nm.supCode ? ' &nbsp;<span class="mini">' + U.esc(nm.supCode) + '</span>' : '') + '</td></tr>'
-    + '<tr><th>Division</th><td>' + U.esc(nm.div) + '</td></tr>'
-    + '<tr><th>State</th><td>' + U.esc(nm.state) + '</td></tr>'
-    + '<tr><th>Region</th><td>' + U.esc(nm.region) + '</td></tr>'
-    + '<tr><th>Month</th><td>' + U.esc(nm.month) + '</td></tr>'
     + '<tr><th>Checking Date</th><td>' + U.esc(nm.date) + '</td></tr>'
     + '<tr><th>Created on</th><td>' + U.esc(U.fmtTime(r.createdAt)) + '</td></tr>'
     + '<tr><th>Status</th><td>' + U.esc(statusLbl) + '</td></tr>'
