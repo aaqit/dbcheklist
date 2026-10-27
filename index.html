@@ -156,7 +156,7 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 .lfeat{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
 .lfeat span{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);
   border:1px solid rgba(255,255,255,.24);padding:7px 13px;border-radius:var(--r-full);font-size:12px;font-weight:700}
-.lcard{background:var(--surface);border-radius:var(--r-lg);padding:32px 30px 26px;width:100%;
+.lcard{background:var(--surface);border-radius:var(--r-lg);padding:32px 30px 26px;width:100%;max-width:470px;margin-left:auto;margin-right:auto;
   box-shadow:0 40px 80px -30px rgba(2,6,23,.6);border:1px solid rgba(255,255,255,.5)}
 .lcard .lmark{width:58px;height:58px;border-radius:17px;background:var(--grad);color:#fff;
   display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
@@ -246,29 +246,40 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
   background:color-mix(in srgb,var(--surface) 86%,transparent);
   backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);
   border-bottom:1px solid var(--line)}
-.topbar .tb-row{display:flex;align-items:center;gap:12px;padding:12px 18px;max-width:1180px;margin:0 auto}
-.page-t{min-width:0;flex:1 1 auto}
-.page-t h2{font-size:17px;letter-spacing:-.35px;display:flex;align-items:center;gap:9px}
+.topbar .tb-row{display:flex;align-items:center;gap:12px;padding:12px 18px;max-width:1180px;margin:0 auto;min-width:0}
+.page-t{min-width:0;flex:1 1 auto;overflow:hidden}
+.page-t h2{font-size:17px;letter-spacing:-.35px;display:flex;align-items:center;gap:9px;min-width:0;white-space:nowrap;overflow:hidden}
+.page-t h2 #pgIco{flex:0 0 auto;display:inline-flex}
+.page-t h2 #pgTitle{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .page-t p{font-size:11.5px;color:var(--mut);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tb-acts{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.tb-acts{display:flex;align-items:center;gap:8px;flex:0 0 auto;min-width:0}
 .iconbtn{width:38px;height:38px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;
   background:var(--surface-3);color:var(--ink-2)}
 .iconbtn:hover{background:var(--line);transform:translateY(-1px)}
 .chip{display:inline-flex;align-items:center;gap:8px;background:var(--surface-3);color:var(--ink-2);
-  padding:7px 13px;border-radius:var(--r-full);font-size:11.5px;font-weight:800;white-space:nowrap}
+  padding:7px 13px;border-radius:var(--r-full);font-size:11.5px;font-weight:800;white-space:nowrap;
+  max-width:220px;min-width:0;overflow:hidden}
+.chip .who-role,.chip .who-sep{flex:0 0 auto}
+.chip .who-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip i{width:7px;height:7px;border-radius:50%;background:#10b981;flex:0 0 auto;box-shadow:0 0 0 3px rgba(16,185,129,.2)}
 .kbd{font-family:var(--mono);font-size:10.5px;padding:3px 7px;border-radius:6px;background:var(--surface-3);
   border:1px solid var(--line-2);color:var(--mut);font-weight:700;white-space:nowrap}
 .search-mini{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1.5px solid var(--line-2);
   border-radius:var(--r-xs);padding:9px 12px;min-width:215px;color:var(--mut);font-size:13.5px;font-weight:600}
 .search-mini:hover{border-color:var(--mut);color:var(--ink-2)}
+@media(max-width:1180px){.search-mini{display:none}}
+@media(max-width:1100px){.topbar .chip{max-width:190px}}
+@media(max-width:1000px){.topbar .chip .who-role,.topbar .chip .who-sep{display:none}}
 
-.content{margin-left:252px;padding:18px 0 60px;min-height:calc(100vh - 63px)}
+.content{margin-left:252px;padding:18px 0 60px;min-height:calc(100vh - 69px)}
 .content>.wrap{padding:0 18px}
 @media(max-width:880px) and (pointer:coarse){
   .rail{display:contents}
   .rail-brand,.rail-foot{display:none}
   .topbar,.content{margin-left:0}
+  .topbar .tb-row{gap:8px}
+  .topbar .chip{max-width:140px}
+  .topbar .chip .who-role,.topbar .chip .who-sep{display:none}
   .content{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
   .tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;flex-direction:row;gap:4px;
     background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(14px);
@@ -291,6 +302,14 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 }
 @media(max-width:380px){
   .tabs .tb b{font-size:9.5px}
+}
+@media(max-width:620px) and (pointer:coarse){
+  .topbar .chip{max-width:118px}
+}
+@media(max-width:380px) and (pointer:coarse){
+  .topbar .tb-row{gap:6px}
+  .topbar .tb-acts{gap:6px}
+  .topbar .chip{max-width:80px;font-size:10.5px;padding:6px 8px;gap:6px}
 }
 
 /* ============================================================================
@@ -373,7 +392,7 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
 /* ============================================================================
    STEPPER FORM
    ========================================================================= */
-.stepbar{position:sticky;top:63px;z-index:30;background:color-mix(in srgb,var(--surface) 90%,transparent);
+.stepbar{position:sticky;top:69px;z-index:30;background:color-mix(in srgb,var(--surface) 90%,transparent);
   backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;
   margin:16px 0;box-shadow:var(--e2)}
 @media(max-width:880px) and (pointer:coarse){.stepbar{top:69px;padding:9px 12px;margin:10px 0;border-radius:12px}}
@@ -838,13 +857,9 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
       <h2>Sign in</h2>
       <div class="sub">ENTER YOUR LOGIN</div>
 
-      <div class="hint">
-        <b>First time here?</b> Open <b>"Ready logins"</b> below and pick a login — the username, password and role are all shown.
-      </div>
-
       <div class="field">
         <label for="lgUser">Username</label>
-        <input id="lgUser" autocomplete="username" spellcheck="false" placeholder="e.g. admin">
+        <input id="lgUser" autocomplete="username" spellcheck="false" placeholder="Your username">
       </div>
       <div class="field">
         <label for="lgPass">Password</label>
@@ -859,11 +874,6 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
         <svg class="ic" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
         Sign in
       </button>
-
-      <details class="llist" id="loginList">
-        <summary><svg class="ic sm" viewBox="0 0 24 24"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>Ready logins — click to fill and sign in</summary>
-        <div id="loginListBody" style="margin-top:10px"></div>
-      </details>
     </div>
 
   </div>
@@ -984,7 +994,7 @@ label{display:block;font-size:11.5px;font-weight:750;color:var(--ink-2);margin:0
               <option value="">All statuses</option>
               <option value="PENDING">Pending</option>
               <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
+              <option value="SENT_BACK">Sent back</option>
             </select>
             <select id="fDiv" onchange="loadReports()"><option value="">All divisions</option></select>
             <button class="btn btn-sm" onclick="clearFilters()">Clear</button>
@@ -2339,7 +2349,9 @@ const SVC = {
     if (user.role !== 'ADMIN' && !isAssignedSupervisor && !isCreator) {
       throw forbidden('Only the assigned supervisor or creator can edit this report.');
     }
-    if (r.status !== CONST.STATUS.PENDING) throw forbidden('Only pending/sent-back reports can be edited.');
+    if (r.status !== CONST.STATUS.PENDING && r.status !== CONST.STATUS.REJECTED) {
+      throw forbidden('Only pending/sent-back reports can be edited.');
+    }
 
     const v = this.validateReportValues(o.values || {});
     const photoMap = {};
@@ -2351,21 +2363,33 @@ const SVC = {
       if (!photoMap[slot]) photoMap[slot] = r.photos[slot];
     }
 
-    // Check if this is a resubmission after send-back
-    const wasSentBack = r.approvals && r.approvals.some(a => a.action === 'sent_back');
+    // A report is a resubmission when it was sent back. New records keep
+    // status PENDING + action 'sent_back'; older records were stored as
+    // status REJECTED without an action field. Support both.
     const lastAction = r.approvals && r.approvals.length > 0 ? r.approvals[r.approvals.length - 1].action : null;
-    const isResubmission = wasSentBack && lastAction === 'sent_back';
+    const legacySentBack = r.status === CONST.STATUS.REJECTED;
+    const isResubmission = lastAction === 'sent_back' || legacySentBack;
 
     const next = Object.assign({}, r, {
       date: U.str(o.date) || U.today(),
       remark: U.str(o.remark),
       values: v,
       photos: photoMap,
-      // status stays PENDING
+      status: CONST.STATUS.PENDING,
     });
     // Add approval entry for resubmission
     if (isResubmission) {
-      next.approvals = (r.approvals || []).concat([{
+      let prior = (r.approvals || []).slice();
+      if (legacySentBack && prior.length) {
+        // Old records stored the send-back entry without an action/byLabel.
+        // Normalise it once so history stays correct after resubmission.
+        const last = Object.assign({}, prior[prior.length - 1]);
+        if (!last.action) last.action = 'sent_back';
+        if (!last.byLabel) last.byLabel = last.by || '';
+        if (!last.byRole) last.byRole = last.role || '';
+        prior[prior.length - 1] = last;
+      }
+      next.approvals = prior.concat([{
         by: user.id, byLabel: user.display || user.username, byRole: user.role,
         at: U.nowIso(), note: 'Report resubmitted after send-back',
         action: 'resubmitted'
@@ -2839,7 +2863,7 @@ function pdfH2(D, text) {
  * Report Information, Photos, Full Detail, Approval, signatures. */
 async function reportPdf(r) {
   const nm = autoNames(r);
-  const statusLbl = CONST.STATUS_LABEL[r.status] || r.status;
+  const statusLbl = statusLabel(r);
   const D = pdfNew('Checking Report - ' + nm.box + ' - ' + nm.month);
   const now = U.fmtTime(U.nowIso());
 
@@ -4056,10 +4080,8 @@ function renderLoginStatus() {
   const on = DB._cloud() && DB.cloud.provider === 'firebase';
   const local = !DB._cloud() && DB.cloud.provider === 'supabase';
   if (on) {
-    const p = (DB.cloud.fb && DB.cloud.fb.projectId) || '';
     el.className = 'connbar on';
-    el.innerHTML = '<span class="dot"></span><span>Online &middot; shared database '
-      + (p ? '<b>' + U.esc(p) + '</b>' : '') + '</span>';
+    el.innerHTML = '<span class="dot"></span><span>Online &middot; shared database</span>';
   } else if (local) {
     el.className = 'connbar off';
     el.innerHTML = '<span class="dot"></span><span>Online &middot; Supabase</span>';
@@ -4105,9 +4127,18 @@ async function afterLogin(user) {
   UI.scope = await SVC.scopeOf(user);
   $('loginScreen').classList.add('hide');
   $('app').classList.remove('hide');
-  const label = user.role === 'ADMIN' ? 'ADMIN' : user.role + ' · ' + user.display;
   const chip = $('whoChip');
-  if (chip) { chip.innerHTML = '<i></i><span>' + U.esc(label) + '</span>'; chip.title = user.username; }
+  if (chip) {
+    const nameTxt = user.display || user.username;
+    if (user.role === 'ADMIN') {
+      chip.innerHTML = '<i></i><span class="who-name">ADMIN</span>';
+      chip.title = 'ADMIN · ' + user.username;
+    } else {
+      chip.innerHTML = '<i></i><span class="who-role">' + U.esc(user.role) + '</span>'
+        + '<span class="who-sep">·</span><span class="who-name">' + U.esc(nameTxt) + '</span>';
+      chip.title = user.role + ' · ' + nameTxt;
+    }
+  }
   const ra = $('railAv'); if (ra) ra.textContent = UI.initials(user.display || user.username);
   const rn = $('railName'); if (rn) rn.textContent = user.display || user.username;
   const rr = $('railRole'); if (rr) rr.textContent = user.role;
@@ -4122,9 +4153,9 @@ async function refreshBadges() {
   if (!UI.scope) return;
   try {
     const all = (await SVC.listReports()).filter(r => SVC.reportInScope(r, UI.scope));
-    const pend = all.filter(r => r.status === 'PENDING').length;
+    const pend = all.filter(r => r.status === 'PENDING' && !isSentBackReport(r)).length;
     const b1 = $('bdg-reports');
-    if (b1) { b1.textContent = String(all.length); b1.classList.toggle('hide', all.length === 0); }
+    if (b1) { b1.textContent = String(pend); b1.classList.toggle('hide', pend === 0); }
     const b2 = $('bdg-home');
     if (b2) { b2.textContent = String(pend); b2.classList.toggle('hide', pend === 0); }
     const ra = $('repActs');
@@ -4191,9 +4222,9 @@ async function loadHome() {
   const nodes = tot.nodes, users = tot.users;
   const reports = all.filter(r => SVC.reportInScope(r, UI.scope))
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
-  const pend = reports.filter(r => r.status === 'PENDING').length;
+  const pend = reports.filter(r => r.status === 'PENDING' && !isSentBackReport(r)).length;
   const ok   = reports.filter(r => r.status === 'APPROVED').length;
-  const rej  = reports.filter(r => r.status === 'REJECTED').length;
+  const rej  = reports.filter(isSentBackReport).length;
   const areaWord = tot.wide ? 'the whole system' : 'your area';
 
   if (box) {
@@ -4276,13 +4307,25 @@ async function loadHome() {
 let _repTimer = null;
 function debouncedReports() { clearTimeout(_repTimer); _repTimer = setTimeout(loadReports, 250); }
 
+function isSentBackReport(r) {
+  if (!r) return false;
+  if (r.status === 'REJECTED') return true;
+  const appr = r.approvals || [];
+  return r.status === 'PENDING' && appr.length > 0 && appr[appr.length - 1].action === 'sent_back';
+}
+function matchStatusFilter(r, st) {
+  if (!st) return true;
+  if (st === 'SENT_BACK') return isSentBackReport(r);
+  return r.status === st;
+}
+
+function statusLabel(r) {
+  return isSentBackReport(r) ? 'Sent Back' : (CONST.STATUS_LABEL[r.status] || r.status);
+}
+
 function statusPill(r) {
   if (r.status === 'APPROVED') return '<span class="pill p-ok">Approved</span>';
-  // Only the LATEST action matters: once resubmitted, the report is pending again.
-  const appr = r.approvals || [];
-  const lastAction = appr.length ? appr[appr.length - 1].action : null;
-  if (r.status === 'PENDING' && lastAction === 'sent_back') return '<span class="pill p-rej">Sent back</span>';
-  if (r.status === 'REJECTED') return '<span class="pill p-rej">Sent back</span>';
+  if (isSentBackReport(r)) return '<span class="pill p-rej">Sent back</span>';
   return '<span class="pill p-pend">Pending</span>';
 }
 
@@ -4295,7 +4338,8 @@ function reportCard(r, opt) {
   const isCreator = r.createdBy === UI.user.username;
   // Edit shows only if LATEST action is 'sent_back' (sent back but not resubmitted yet)
   const lastAction = r.approvals && r.approvals.length > 0 ? r.approvals[r.approvals.length - 1].action : null;
-  const canEdit = (UI.user.role === 'ADMIN' || isAssignedSupervisor || isCreator) && lastAction === 'sent_back';
+  const canEdit = (UI.user.role === 'ADMIN' || isAssignedSupervisor || isCreator)
+    && (lastAction === 'sent_back' || r.status === 'REJECTED');
   const route = [r.regionName, r.stateName, r.divisionName].filter(Boolean).join(' &rarr; ');
 
   return '<div class="item st-' + U.esc(r.status || 'PENDING') + '">'
@@ -4342,7 +4386,7 @@ async function loadReports() {
   const q = U.str($('fq').value).toLowerCase();
   const st = $('fStatus').value, dv = fDiv.value;
   const rows = all.filter(r => {
-    if (st && r.status !== st) return false;
+    if (!matchStatusFilter(r, st)) return false;
     if (dv && r.divisionId !== dv) return false;
     if (!q) return true;
     return [r.supName, r.boxExecName, r.date, r.divisionName, r.stateName, r.regionName, r.remark]
@@ -4420,19 +4464,23 @@ function approvalsTimeline(r) {
   acts.push('<div class="tl-i ok"><b>Report created</b><span class="tl-r">' + U.esc(U.fmtTime(r.createdAt))
     + ' &middot; ' + U.esc(r.createdBy || '-') + '</span></div>');
   for (const a of appr) {
-    const isSentBack = a.action === 'sent_back';
+    const legacy = !a.action;
+    const isSentBack = a.action === 'sent_back' || (legacy && r.status === 'REJECTED');
     const isResub = a.action === 'resubmitted';
-    let title = a.byLabel || '-';
-    if (isSentBack) title = 'Sent back by ' + a.byLabel;
-    else if (isResub) title = 'Resubmitted by ' + a.byLabel;
-    else if (a.action === 'approved') title = 'Approved by ' + a.byLabel;
+    const isApproved = a.action === 'approved' || (legacy && r.status !== 'REJECTED');
+    const byLabel = a.byLabel || a.by || '-';
+    const byRole = a.byRole || a.role || '';
+    let title = byLabel;
+    if (isSentBack) title = 'Sent back by ' + byLabel;
+    else if (isResub) title = 'Resubmitted by ' + byLabel;
+    else if (isApproved) title = 'Approved by ' + byLabel;
     acts.push('<div class="tl-i ' + (isSentBack ? 'warn' : 'ok') + '"><b>'
       + U.esc(title) + '</b>'
-      + '<span class="tl-r">' + U.esc(a.byRole || '') + ' &middot; ' + U.esc(U.fmtTime(a.at)) + '</span>'
+      + '<span class="tl-r">' + U.esc(byRole) + ' &middot; ' + U.esc(U.fmtTime(a.at)) + '</span>'
       + (a.note ? '<div class="tl-n">' + U.esc(a.note) + '</div>' : '') + '</div>');
   }
+  const lastAction = appr.length ? appr[appr.length - 1].action : null;
   if (r.status === 'PENDING') {
-    const lastAction = appr.length ? appr[appr.length - 1].action : null;
     if (lastAction === 'sent_back') {
       acts.push('<div class="tl-i warn"><b>Waiting for revision</b><span class="tl-r">'
         + 'the assigned supervisor can edit and save it again</span></div>');
@@ -4441,6 +4489,9 @@ function approvalsTimeline(r) {
         + (r.supName ? 'the level above ' + U.esc(r.supName) + ' is reviewing it' : 'the level above is reviewing it')
         + '</span></div>');
     }
+  } else if (r.status === 'REJECTED') {
+    acts.push('<div class="tl-i warn"><b>Waiting for revision</b><span class="tl-r">'
+      + 'the assigned supervisor can edit and save it again</span></div>');
   }
   return '<div class="tl">' + acts.join('') + '</div>';
 }
@@ -4455,7 +4506,8 @@ async function openReport(id) {
   const isAssignedSupervisor = UI.user.role === 'SUPERVISOR' && r.supId === UI.user.refId;
   const isCreator = r.createdBy === UI.user.username;
   const lastAction = r.approvals && r.approvals.length > 0 ? r.approvals[r.approvals.length - 1].action : null;
-  const canEdit = (UI.user.role === 'ADMIN' || isAssignedSupervisor || isCreator) && lastAction === 'sent_back';
+  const canEdit = (UI.user.role === 'ADMIN' || isAssignedSupervisor || isCreator)
+    && (lastAction === 'sent_back' || r.status === 'REJECTED');
   const route = [r.regionName, r.stateName, r.divisionName].filter(Boolean).join(' &rarr; ');
 
   $('modalHost').innerHTML = '<div class="modal" id="repModal"><div class="box">'
@@ -4537,12 +4589,14 @@ async function editReport(id) {
   if (UI.user.role !== 'ADMIN' && !isAssignedSupervisor && !isCreator) {
     toast('Only the assigned supervisor or creator can edit this report.', 'bad'); return;
   }
-  if (r.status !== CONST.STATUS.PENDING) {
+  if (r.status !== CONST.STATUS.PENDING && r.status !== CONST.STATUS.REJECTED) {
     toast('Only pending/sent-back reports can be edited.', 'bad'); return;
   }
-  // Edit allowed only if LATEST action is 'sent_back' (sent back but not yet resubmitted)
+  // New records: edit only while the LATEST action is 'sent_back'.
+  // Older records were saved as REJECTED without an action - keep them editable.
   const lastAction = r.approvals && r.approvals.length > 0 ? r.approvals[r.approvals.length - 1].action : null;
-  if (lastAction !== 'sent_back' && UI.user.role !== 'ADMIN') {
+  const legacySentBack = r.status === CONST.STATUS.REJECTED;
+  if (lastAction !== 'sent_back' && !legacySentBack && UI.user.role !== 'ADMIN') {
     toast('This report is not awaiting revision (already resubmitted or not sent back).', 'bad'); return;
   }
 
@@ -4615,7 +4669,7 @@ function autoNames(r) {
 }
 
 function printSheetHtml(r) {
-  const statusLbl = CONST.STATUS_LABEL[r.status] || r.status;
+  const statusLbl = statusLabel(r);
   const nm = autoNames(r);
   const appr = (r.approvals || []);
   const apprRows = appr.length
@@ -4972,7 +5026,7 @@ async function renderStep() {
 
   if (st.key === 'basic') {
     if (u.role === 'ADMIN') await fillSupervisorSelect(d.supId);
-    await refreshBoxExecs();
+    await refreshBoxExecs(d.boxId);
   }
   return true;
 }
@@ -4991,7 +5045,7 @@ UI.supChanged = async function () {
   await refreshBoxExecs();
 };
 
-async function refreshBoxExecs() {
+async function refreshBoxExecs(wantBoxId) {
   const u = UI.user;
   const d = UI.draft;
   const sel = $('rBox');
@@ -5005,6 +5059,9 @@ async function refreshBoxExecs() {
     ? boxes.map(b => '<option value="' + U.esc(b.id) + '">' + U.esc(b.name)
         + (b.email ? ' — ' + U.esc(b.email) : '') + '</option>').join('')
     : '<option value="">No Box Executive in this Division — add one from the Hierarchy tab</option>';
+  /* Edit mode: keep the report's own Box Executive selected (do not jump to the first one). */
+  const want = wantBoxId || (d && d.boxId) || '';
+  if (want && boxes.some(b => b.id === want)) sel.value = want;
   if (d) {
     d.supId = supId;
     d.supName = sup.name;
@@ -5734,7 +5791,7 @@ function zipConfirmBox(reports, names) {
       const nm = autoNames(r);
       return '<tr><td>' + (i + 1) + '.</td><td>' + U.esc(names[i]) + '</td>'
         + '<td>' + U.esc(nm.box) + '</td><td>' + U.esc(nm.month) + '</td>'
-        + '<td>' + U.esc(CONST.STATUS_LABEL[r.status] || r.status) + '</td></tr>';
+        + '<td>' + U.esc(statusLabel(r)) + '</td></tr>';
     }).join('');
     const d = document.createElement('div');
     d.className = 'modal';
@@ -5772,7 +5829,7 @@ async function zipVisible() {
     const fq = U.str($('fq').value).toLowerCase();
     const st = $('fStatus').value, dv = $('fDiv').value;
     const rows = all.filter(function (r) {
-      if (st && r.status !== st) return false;
+      if (!matchStatusFilter(r, st)) return false;
       if (dv && r.divisionId !== dv) return false;
       if (!fq) return true;
       return [r.supName, r.boxExecName, r.date, r.divisionName, r.stateName, r.regionName, r.remark]
@@ -5907,7 +5964,8 @@ async function renderPdfOptions() {
     if (r.divisionName) divs[r.divisionName] = 1;
     /* key = raw status (PENDING), text = label (Pending) - value aur label
      * alag rakhna zaroori hai, warna filter kabhi match hi nahi hota. */
-    if (r.status) statuses[r.status] = CONST.STATUS_LABEL[r.status] || r.status;
+    if (isSentBackReport(r)) statuses['SENT_BACK'] = 'Sent back';
+    else if (r.status) statuses[r.status] = CONST.STATUS_LABEL[r.status] || r.status;
   }
   /* Month names ko chronological order me dikhao, text order me nahi. */
   const mKeys = Object.keys(months).sort((a, b) => {
@@ -5955,7 +6013,7 @@ async function countPdf() {
   const f = pdfPick();
   const list = reports.filter(r =>
     (!f.month   || (U.monthName(r.date || r.createdAt) || 'No date') === f.month) &&
-    (!f.status  || r.status === f.status) &&
+    (!f.status  || (f.status === 'SENT_BACK' ? isSentBackReport(r) : r.status === f.status)) &&
     (!f.division|| r.divisionName === f.division));
 
   cnt.textContent = '(' + list.length + ' report' + (list.length === 1 ? '' : 's') + ')';
@@ -6001,7 +6059,7 @@ async function bulkPrintVisible() {
     const fq = U.str($('fq').value).toLowerCase();
     const st = $('fStatus').value, dv = $('fDiv').value;
     const rows = all.filter(r => {
-      if (st && r.status !== st) return false;
+      if (!matchStatusFilter(r, st)) return false;
       if (dv && r.divisionId !== dv) return false;
       if (!fq) return true;
       return [r.supName, r.boxExecName, r.date, r.divisionName, r.stateName, r.regionName, r.remark]
@@ -6045,7 +6103,7 @@ function confirmBoxBulk(reports) {
     + '<td>' + U.esc(r.supName || '-') + '</td>'
     + '<td>' + U.esc(r.divisionName || '-') + '</td>'
     + '<td>' + U.esc(r.date || '-') + '</td>'
-    + '<td>' + U.esc(CONST.STATUS_LABEL[r.status] || r.status) + '</td></tr>').join('');
+    + '<td>' + U.esc(statusLabel(r)) + '</td></tr>').join('');
 
   const d = document.createElement('div');
   d.className = 'modal';
@@ -6114,7 +6172,7 @@ async function exportCsv() {
   const rows = all.map(r => {
     const lastA = (r.approvals || [])[r.approvals.length - 1] || {};
     return [r.date, r.regionName, r.stateName, r.divisionName, r.supName, r.supCode, r.boxExecName,
-      CONST.STATUS_LABEL[r.status] || r.status, U.fmtTime(r.createdAt),
+      statusLabel(r), U.fmtTime(r.createdAt),
       lastA.byLabel || '', U.fmtTime(lastA.at || '')]
       .concat(CONST.ALL_FIELDS.map(f => U.str((r.values || {})[f.key])));
   });
